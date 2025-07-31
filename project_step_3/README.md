@@ -1,9 +1,9 @@
 # Project Step 3 - Banana Phone Estate Services Web Application
 
-## 🌐 Website URL
+## Website URL
 **http://classwork.engr.oregonstate.edu:9124**
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 project_step_3/
@@ -28,7 +28,7 @@ project_step_3/
         └── solditems.html       # Manage sold items (intersection table)
 ```
 
-## 🚀 How to Run
+## How to Run
 
 ### Prerequisites
 - Node.js installed on ENGR servers
@@ -47,7 +47,7 @@ project_step_3/
    ```
 5. Access via browser at assigned port
 
-## 📋 Deliverables for Step 3
+## Deliverables for Step 3
 
 ### 1. PDF File
 - Convert `Project_Step_3_Report.md` to PDF
@@ -71,7 +71,7 @@ project_step_3/
 - Sample data INSERT statements
 - Proper CASCADE options
 
-## 🎨 Website Features
+## Website Features
 
 ### Homepage
 - Company overview and statistics
@@ -95,7 +95,7 @@ project_step_3/
 - **Record Sale:** New transaction form
 - **Sold Items:** Intersection table management
 
-## 🛠 Technical Implementation
+## Technical Implementation
 
 ### Frontend
 - **HTML5:** Semantic markup with accessibility features
@@ -112,7 +112,7 @@ project_step_3/
 - **Query Execution:** DML queries ready for integration
 - **Error Handling:** Planned for backend implementation
 
-## 📊 Database Operations Supported
+## Database Operations Supported
 
 ### CRUD Operations for All Entities:
 - **Events:** Create, Read, Update, Delete estate sale events
@@ -127,7 +127,7 @@ project_step_3/
 - **Data Validation:** Client-side form validation
 - **Responsive Design:** Mobile-friendly interface
 
-## 🎯 Next Steps (Future Project Steps)
+## Next Steps (Future Project Steps)
 
 1. **Database Connectivity:** Connect Express.js to MySQL
 2. **API Implementation:** Execute DML queries via backend
@@ -135,7 +135,7 @@ project_step_3/
 4. **User Authentication:** Login/session management
 5. **Error Handling:** Comprehensive error responses
 
-## 📝 Notes for Grading
+## Notes for Grading
 
 - All forms include proper validation and user feedback
 - Website is fully browsable with consistent navigation
@@ -143,7 +143,7 @@ project_step_3/
 - Design follows modern web standards and accessibility guidelines
 - Ready for backend integration in subsequent project steps
 
-## 👥 Authors
+## Authors
 - **Cohen Velazquez**
 - **Joseph Lucciano Barberan**
 - **Group:** 80

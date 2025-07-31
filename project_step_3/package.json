@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "npm run start",
     "build": "npm run build-react",
-    "build-react": "cd client && npm run build"
+    "build-react": "cd client && npm run build",
+    "production": "npx forever start server.js",
+    "stop_production": "npx forever stop server.js"
   },
   "keywords": [
     "estate-sale",
@@ -23,10 +25,12 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "forever": "^4.0.3",
     "mysql": "^2.18.1",
+    "mysql2": "^3.14.3",
     "path": "^0.12.7"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.1.10"
   }
 }

@@ -7,25 +7,25 @@
 -- Variable notation: @variableName represents data that will be provided by backend code
 
 -- =============================================================================
--- EVENTS QUERIES
+-- ESTATESALEEVENTS QUERIES
 -- =============================================================================
 
--- Browse/Display all Events
+-- Browse/Display all EstateSaleEvents
 SELECT eventID, title, startDate, endDate, location, description 
-FROM Events 
+FROM EstateSaleEvents 
 ORDER BY startDate DESC;
 
--- Get a single Event by ID for editing
+-- Get a single EstateSaleEvent by ID for editing
 SELECT eventID, title, startDate, endDate, location, description 
-FROM Events 
+FROM EstateSaleEvents 
 WHERE eventID = @eventIdInput;
 
--- Add a new Event
-INSERT INTO Events (title, startDate, endDate, location, description)
+-- Add a new EstateSaleEvent
+INSERT INTO EstateSaleEvents (title, startDate, endDate, location, description)
 VALUES (@titleInput, @startDateInput, @endDateInput, @locationInput, @descriptionInput);
 
--- Update an existing Event
-UPDATE Events 
+-- Update an existing EstateSaleEvent
+UPDATE EstateSaleEvents 
 SET title = @titleInput, 
     startDate = @startDateInput, 
     endDate = @endDateInput, 
@@ -33,12 +33,12 @@ SET title = @titleInput,
     description = @descriptionInput
 WHERE eventID = @eventIdInput;
 
--- Delete an Event (will cascade to related Items and Sales)
-DELETE FROM Events WHERE eventID = @eventIdInput;
+-- Delete an EstateSaleEvent (will cascade to related Items and Sales)
+DELETE FROM EstateSaleEvents WHERE eventID = @eventIdInput;
 
--- Search Events by title or location
+-- Search EstateSaleEvents by title or location
 SELECT eventID, title, startDate, endDate, location, description 
-FROM Events 
+FROM EstateSaleEvents 
 WHERE title LIKE CONCAT('%', @searchTermInput, '%') 
    OR location LIKE CONCAT('%', @searchTermInput, '%')
 ORDER BY startDate DESC;
@@ -47,7 +47,7 @@ ORDER BY startDate DESC;
 -- ITEMS QUERIES
 -- =============================================================================
 
--- Browse/Display all Items with Event information
+-- Browse/Display all Items with EstateSaleEvent information
 SELECT 
     i.itemID, 
     i.name, 
@@ -58,10 +58,10 @@ SELECT
     e.title AS eventTitle,
     e.eventID
 FROM Items i
-INNER JOIN Events e ON i.eventID = e.eventID
+INNER JOIN EstateSaleEvents e ON i.eventID = e.eventID
 ORDER BY i.itemID;
 
--- Get Items for a specific Event
+-- Get Items for a specific EstateSaleEvent
 SELECT itemID, name, category, description, startingPrice, status
 FROM Items 
 WHERE eventID = @eventIdInput
@@ -99,7 +99,7 @@ SELECT
     i.status,
     e.title AS eventTitle
 FROM Items i
-INNER JOIN Events e ON i.eventID = e.eventID
+INNER JOIN EstateSaleEvents e ON i.eventID = e.eventID
 WHERE i.name LIKE CONCAT('%', @searchTermInput, '%') 
    OR i.category LIKE CONCAT('%', @searchTermInput, '%')
 ORDER BY i.name;
@@ -113,7 +113,7 @@ SELECT
     i.status,
     e.title AS eventTitle
 FROM Items i
-INNER JOIN Events e ON i.eventID = e.eventID
+INNER JOIN EstateSaleEvents e ON i.eventID = e.eventID
 WHERE i.status = @statusInput
 ORDER BY i.name;
 
@@ -178,8 +178,8 @@ WHERE email = @emailInput;
 -- SALES QUERIES
 -- =============================================================================
 
--- Browse/Display all Sales with Customer and Event information
-SELECT 
+-- Browse/Display all Sales with Customer and EstateSaleEvent information
+SELECT DISTINCT
     s.saleID,
     s.saleDate,
     s.totalAmount,
@@ -187,10 +187,12 @@ SELECT
     CONCAT(c.firstName, ' ', c.lastName) AS customerName,
     e.title AS eventTitle,
     s.customerID,
-    s.eventID
+    e.eventID
 FROM Sales s
 INNER JOIN Customers c ON s.customerID = c.customerID
-INNER JOIN Events e ON s.eventID = e.eventID
+INNER JOIN SoldItems si ON s.saleID = si.saleID
+INNER JOIN Items i ON si.itemID = i.itemID
+INNER JOIN EstateSaleEvents e ON i.eventID = e.eventID
 ORDER BY s.saleDate DESC;
 
 -- Get Sales for a specific Customer
@@ -201,12 +203,14 @@ SELECT
     s.paymentMethod,
     e.title AS eventTitle
 FROM Sales s
-INNER JOIN Events e ON s.eventID = e.eventID
+INNER JOIN SoldItems si ON s.saleID = si.saleID
+INNER JOIN Items i ON si.itemID = i.itemID
+INNER JOIN EstateSaleEvents e ON i.eventID = e.eventID
 WHERE s.customerID = @customerIdInput
 ORDER BY s.saleDate DESC;
 
--- Get Sales for a specific Event
-SELECT 
+-- Get Sales for a specific EstateSaleEvent
+SELECT DISTINCT
     s.saleID,
     s.saleDate,
     s.totalAmount,
@@ -214,32 +218,35 @@ SELECT
     CONCAT(c.firstName, ' ', c.lastName) AS customerName
 FROM Sales s
 INNER JOIN Customers c ON s.customerID = c.customerID
-WHERE s.eventID = @eventIdInput
+INNER JOIN SoldItems si ON s.saleID = si.saleID
+INNER JOIN Items i ON si.itemID = i.itemID
+WHERE i.eventID = @eventIdInput
 ORDER BY s.saleDate DESC;
 
 -- Get a single Sale by ID for details
 SELECT 
     s.saleID,
     s.customerID,
-    s.eventID,
     s.saleDate,
     s.totalAmount,
     s.paymentMethod,
     CONCAT(c.firstName, ' ', c.lastName) AS customerName,
-    e.title AS eventTitle
+    e.title AS eventTitle,
+    e.eventID
 FROM Sales s
 INNER JOIN Customers c ON s.customerID = c.customerID
-INNER JOIN Events e ON s.eventID = e.eventID
+INNER JOIN SoldItems si ON s.saleID = si.saleID
+INNER JOIN Items i ON si.itemID = i.itemID
+INNER JOIN EstateSaleEvents e ON i.eventID = e.eventID
 WHERE s.saleID = @saleIdInput;
 
 -- Add a new Sale
-INSERT INTO Sales (customerID, eventID, saleDate, totalAmount, paymentMethod)
-VALUES (@customerIdInput, @eventIdInput, @saleDateInput, @totalAmountInput, @paymentMethodInput);
+INSERT INTO Sales (customerID, saleDate, totalAmount, paymentMethod)
+VALUES (@customerIdInput, @saleDateInput, @totalAmountInput, @paymentMethodInput);
 
 -- Update an existing Sale
 UPDATE Sales 
 SET customerID = @customerIdInput,
-    eventID = @eventIdInput,
     saleDate = @saleDateInput,
     totalAmount = @totalAmountInput,
     paymentMethod = @paymentMethodInput
@@ -249,7 +256,7 @@ WHERE saleID = @saleIdInput;
 DELETE FROM Sales WHERE saleID = @saleIdInput;
 
 -- Get Sales by date range
-SELECT 
+SELECT DISTINCT
     s.saleID,
     s.saleDate,
     s.totalAmount,
@@ -258,7 +265,9 @@ SELECT
     e.title AS eventTitle
 FROM Sales s
 INNER JOIN Customers c ON s.customerID = c.customerID
-INNER JOIN Events e ON s.eventID = e.eventID
+INNER JOIN SoldItems si ON s.saleID = si.saleID
+INNER JOIN Items i ON si.itemID = i.itemID
+INNER JOIN EstateSaleEvents e ON i.eventID = e.eventID
 WHERE s.saleDate BETWEEN @startDateInput AND @endDateInput
 ORDER BY s.saleDate DESC;
 
@@ -282,7 +291,7 @@ FROM SoldItems si
 INNER JOIN Items i ON si.itemID = i.itemID
 INNER JOIN Sales s ON si.saleID = s.saleID
 INNER JOIN Customers c ON s.customerID = c.customerID
-INNER JOIN Events e ON s.eventID = e.eventID
+INNER JOIN EstateSaleEvents e ON s.eventID = e.eventID
 ORDER BY s.saleDate DESC, si.saleID;
 
 -- Get SoldItems for a specific Sale
@@ -330,7 +339,7 @@ WHERE saleID = @saleIdInput AND itemID = @itemIdInput;
 -- REPORTING QUERIES
 -- =============================================================================
 
--- Sales summary by Event
+-- Sales summary by EstateSaleEvent
 SELECT 
     e.eventID,
     e.title AS eventTitle,
@@ -340,9 +349,10 @@ SELECT
     COUNT(DISTINCT si.itemID) AS itemsSold,
     COALESCE(SUM(s.totalAmount), 0) AS totalRevenue,
     COALESCE(AVG(s.totalAmount), 0) AS averageSale
-FROM Events e
-LEFT JOIN Sales s ON e.eventID = s.eventID
-LEFT JOIN SoldItems si ON s.saleID = si.saleID
+FROM EstateSaleEvents e
+LEFT JOIN Items i ON e.eventID = i.eventID
+LEFT JOIN SoldItems si ON i.itemID = si.itemID
+LEFT JOIN Sales s ON si.saleID = s.saleID
 GROUP BY e.eventID, e.title, e.startDate, e.endDate
 ORDER BY e.startDate DESC;
 

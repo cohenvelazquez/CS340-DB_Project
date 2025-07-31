@@ -1,44 +1,62 @@
 // Sample data for Banana Phone Estate Services
 // This simulates the SELECT query results from the database
+// Updated to match DDL.sql sample data - July 31, 2025
 
 // Sample data structure based on DML.sql queries
 const sampleData = {
-    // Events data
+    // EstateSaleEvents data
     events: [
         {
             eventID: 1,
-            title: "Johnson Family Estate Sale",
-            startDate: "2024-03-15",
-            endDate: "2024-03-17",
-            location: "123 Oak Street, Portland, OR",
-            description: "Complete household contents including antiques, furniture, and collectibles"
+            title: "Victorian Manor Estate Sale",
+            startDate: "2025-08-01",
+            endDate: "2025-08-03",
+            location: "1234 Oak Street, Portland, OR 97201",
+            description: "Beautiful Victorian home with antique furniture, china, and collectibles"
         },
         {
             eventID: 2,
-            title: "Modern Art & Vintage Collection",
-            startDate: "2024-04-20",
-            endDate: "2024-04-22",
-            location: "456 Pine Avenue, Eugene, OR",
-            description: "Contemporary art pieces and vintage mid-century furniture"
+            title: "Mid-Century Modern Collection",
+            startDate: "2025-08-15",
+            endDate: "2025-08-17",
+            location: "5678 Pine Avenue, Beaverton, OR 97005",
+            description: "Stunning collection of 1950s-60s furniture and decor"
         },
         {
             eventID: 3,
-            title: "Coin & Jewelry Estate Sale",
-            startDate: "2024-05-10",
-            endDate: "2024-05-12",
-            location: "789 Elm Drive, Salem, OR",
-            description: "Rare coins, precious jewelry, and luxury accessories"
+            title: "Collector's Paradise Sale",
+            startDate: "2025-09-01",
+            endDate: "2025-09-02",
+            location: "9012 Maple Drive, Lake Oswego, OR 97034",
+            description: "Rare books, coins, stamps, and vintage toys"
+        },
+        {
+            eventID: 4,
+            title: "Garden Estate Sale",
+            startDate: "2025-09-15",
+            endDate: "2025-09-16",
+            location: "3456 Elm Street, Tigard, OR 97223",
+            description: "Beautiful home with extensive garden tools and outdoor furniture"
+        },
+        {
+            eventID: 5,
+            title: "Art Lover's Estate",
+            startDate: "2025-10-01",
+            endDate: "2025-10-03",
+            location: "7890 Cedar Lane, Milwaukie, OR 97222",
+            description: "Original paintings, sculptures, and art supplies"
         }
     ],
 
     // Items data
     items: [
+        // Items for Victorian Manor Estate Sale (eventID = 1)
         {
             itemID: 1,
             eventID: 1,
-            name: "Antique Oak Dining Table",
+            name: "Mahogany Dining Table",
             category: "Furniture",
-            description: "Beautiful 1920s oak dining table with 6 matching chairs",
+            description: "Antique mahogany dining table seats 8, circa 1890",
             startingPrice: 450.00,
             status: "Available"
         },
@@ -46,8 +64,8 @@ const sampleData = {
             itemID: 2,
             eventID: 1,
             name: "Royal Doulton China Set",
-            category: "Dishware",
-            description: "Complete 12-piece Royal Doulton china service",
+            category: "China",
+            description: "Complete 12-place setting with serving pieces",
             startingPrice: 275.00,
             status: "Sold"
         },
@@ -55,27 +73,28 @@ const sampleData = {
             itemID: 3,
             eventID: 1,
             name: "Victorian Jewelry Box",
-            category: "Accessories",
-            description: "Ornate Victorian jewelry box with velvet interior",
+            category: "Collectibles",
+            description: "Hand-carved wooden jewelry box with velvet interior",
             startingPrice: 125.00,
-            status: "Sold"
+            status: "Available"
         },
         {
             itemID: 4,
-            eventID: 2,
-            name: "Mid-Century Modern Sofa",
-            category: "Furniture",
-            description: "Pristine condition 1960s sectional sofa",
+            eventID: 1,
+            name: "Persian Rug",
+            category: "Home Decor",
+            description: "Hand-woven Persian rug 8x10 feet, excellent condition",
             startingPrice: 800.00,
-            status: "Hold"
+            status: "Held"
         },
+        // Items for Mid-Century Modern Collection (eventID = 2)
         {
             itemID: 5,
             eventID: 2,
-            name: "Abstract Oil Painting",
-            category: "Art",
-            description: "Original abstract oil painting by local artist",
-            startingPrice: 150.00,
+            name: "Eames Lounge Chair",
+            category: "Furniture",
+            description: "Authentic Herman Miller Eames chair and ottoman",
+            startingPrice: 1200.00,
             status: "Available"
         },
         {
@@ -83,7 +102,7 @@ const sampleData = {
             eventID: 2,
             name: "Atomic Clock",
             category: "Decor",
-            description: "1950s atomic sunburst wall clock",
+            description: "Sunburst atomic wall clock from the 1960s",
             startingPrice: 85.00,
             status: "Sold"
         },
@@ -92,34 +111,73 @@ const sampleData = {
             eventID: 2,
             name: "Boomerang Coffee Table",
             category: "Furniture",
-            description: "Iconic mid-century boomerang-shaped coffee table",
+            description: "Kidney-shaped coffee table with hairpin legs",
             startingPrice: 320.00,
-            status: "Sold"
+            status: "Available"
         },
+        // Items for Collector's Paradise Sale (eventID = 3)
         {
             itemID: 8,
             eventID: 3,
-            name: "Gold Wedding Ring Set",
-            category: "Jewelry",
-            description: "14k gold wedding ring set with diamonds",
-            startingPrice: 650.00,
+            name: "First Edition Hemingway",
+            category: "Books",
+            description: "The Old Man and the Sea, first edition 1952",
+            startingPrice: 500.00,
             status: "Available"
         },
         {
             itemID: 9,
             eventID: 3,
             name: "1964 Kennedy Half Dollar",
-            category: "Collectibles",
-            description: "Rare 1964 Kennedy half dollar in excellent condition",
+            category: "Coins",
+            description: "Uncirculated condition silver half dollar",
             startingPrice: 25.00,
             status: "Sold"
         },
         {
             itemID: 10,
             eventID: 3,
-            name: "Pearl Necklace",
-            category: "Jewelry",
-            description: "Genuine cultured pearl necklace with gold clasp",
+            name: "Lionel Train Set",
+            category: "Toys",
+            description: "Complete O-gauge train set with accessories",
+            startingPrice: 350.00,
+            status: "Available"
+        },
+        // Items for Garden Estate Sale (eventID = 4)
+        {
+            itemID: 11,
+            eventID: 4,
+            name: "Teak Patio Set",
+            category: "Outdoor",
+            description: "6-piece teak patio furniture set with cushions",
+            startingPrice: 650.00,
+            status: "Available"
+        },
+        {
+            itemID: 12,
+            eventID: 4,
+            name: "Vintage Garden Tools",
+            category: "Tools",
+            description: "Collection of well-maintained vintage garden tools",
+            startingPrice: 75.00,
+            status: "Available"
+        },
+        // Items for Art Lover's Estate (eventID = 5)
+        {
+            itemID: 13,
+            eventID: 5,
+            name: "Oil Painting Landscape",
+            category: "Art",
+            description: "Original oil painting by local artist, framed",
+            startingPrice: 225.00,
+            status: "Available"
+        },
+        {
+            itemID: 14,
+            eventID: 5,
+            name: "Bronze Sculpture",
+            category: "Art",
+            description: "Small bronze sculpture of a dancer, signed",
             startingPrice: 180.00,
             status: "Available"
         }
@@ -132,84 +190,79 @@ const sampleData = {
             firstName: "Sarah",
             lastName: "Johnson",
             email: "sarah.johnson@email.com",
-            phone: "(503) 555-0123",
-            created_at: "2024-03-14"
+            phone: "503-555-0101",
+            created_at: "2025-07-30"
         },
         {
             customerID: 2,
             firstName: "Michael",
             lastName: "Chen",
-            email: "michael.chen@email.com",
-            phone: "(503) 555-0456",
-            created_at: "2024-04-19"
+            email: "mchen@email.com",
+            phone: "503-555-0102",
+            created_at: "2025-07-30"
         },
         {
             customerID: 3,
             firstName: "Emily",
             lastName: "Rodriguez",
-            email: "emily.rodriguez@email.com",
-            phone: "(503) 555-0789",
-            created_at: "2024-05-09"
+            email: "emily.r@email.com",
+            phone: "503-555-0103",
+            created_at: "2025-07-30"
         },
         {
             customerID: 4,
             firstName: "David",
             lastName: "Thompson",
-            email: "david.thompson@email.com",
-            phone: "(503) 555-0321",
-            created_at: "2024-04-20"
+            email: "dthompson@email.com",
+            phone: "503-555-0104",
+            created_at: "2025-07-30"
         },
         {
             customerID: 5,
             firstName: "Lisa",
-            lastName: "Martinez",
-            email: "lisa.martinez@email.com",
-            phone: "(503) 555-0654",
-            created_at: "2024-03-16"
+            lastName: "Anderson",
+            email: "lisa.anderson@email.com",
+            phone: "503-555-0105",
+            created_at: "2025-07-30"
         }
     ],
 
-    // Sales data
+    // Sales data (normalized - no eventID due to 3NF compliance)
     sales: [
         {
             saleID: 1,
             customerID: 1,
-            eventID: 1,
-            saleDate: "2024-03-16",
-            totalAmount: 400.00,
+            saleDate: "2025-08-01",
+            totalAmount: 275.00,
             paymentMethod: "Credit Card"
         },
         {
             saleID: 2,
             customerID: 2,
-            eventID: 2,
-            saleDate: "2024-04-21",
+            saleDate: "2025-08-15",
             totalAmount: 85.00,
             paymentMethod: "Cash"
         },
         {
             saleID: 3,
             customerID: 3,
-            eventID: 3,
-            saleDate: "2024-05-11",
+            saleDate: "2025-09-01",
             totalAmount: 25.00,
-            paymentMethod: "Check"
+            paymentMethod: "Cash"
         },
         {
             saleID: 4,
             customerID: 1,
-            eventID: 1,
-            saleDate: "2024-03-17",
+            saleDate: "2025-08-02",
             totalAmount: 125.00,
             paymentMethod: "Credit Card"
         },
         {
             saleID: 5,
             customerID: 4,
-            eventID: 2,
-            saleDate: "2024-04-22",
+            saleDate: "2025-08-16",
             totalAmount: 320.00,
-            paymentMethod: "Cash"
+            paymentMethod: "Check"
         }
     ],
 
@@ -256,7 +309,7 @@ function getAllSoldItems() {
         const item = sampleData.items.find(i => i.itemID === si.itemID);
         const sale = sampleData.sales.find(s => s.saleID === si.saleID);
         const customer = sampleData.customers.find(c => c.customerID === sale.customerID);
-        const event = sampleData.events.find(e => e.eventID === sale.eventID);
+        const event = sampleData.events.find(e => e.eventID === item.eventID);
         
         return {
             saleID: si.saleID,
@@ -308,16 +361,24 @@ function getAllCustomers() {
     });
 }
 
-// Get all Sales with customer and event information
+// Get all Sales with customer and event information (normalized approach)
 function getAllSales() {
     return sampleData.sales.map(sale => {
         const customer = sampleData.customers.find(c => c.customerID === sale.customerID);
-        const event = sampleData.events.find(e => e.eventID === sale.eventID);
+        
+        // Get event information through soldItems -> items -> events
+        const saleItems = sampleData.soldItems.filter(si => si.saleID === sale.saleID);
+        const eventTitles = [...new Set(saleItems.map(si => {
+            const item = sampleData.items.find(i => i.itemID === si.itemID);
+            const event = sampleData.events.find(e => e.eventID === item.eventID);
+            return event.title;
+        }))];
         
         return {
             ...sale,
             customerName: `${customer.firstName} ${customer.lastName}`,
-            eventTitle: event.title
+            eventTitle: eventTitles.length > 0 ? eventTitles[0] : 'Unknown Event',
+            eventTitles: eventTitles // In case sale spans multiple events
         };
     });
 }

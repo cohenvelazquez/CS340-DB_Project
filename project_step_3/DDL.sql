@@ -13,10 +13,10 @@ DROP TABLE IF EXISTS SoldItems;
 DROP TABLE IF EXISTS Sales;
 DROP TABLE IF EXISTS Items;
 DROP TABLE IF EXISTS Customers;
-DROP TABLE IF EXISTS Events;
+DROP TABLE IF EXISTS EstateSaleEvents;
 
--- Create Events table
-CREATE TABLE Events (
+-- Create EstateSaleEvents table
+CREATE TABLE EstateSaleEvents (
     eventID INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     startDate DATETIME NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE Items (
     description TEXT,
     startingPrice DECIMAL(10,2) NOT NULL,
     status ENUM('Available','Sold','Held') NOT NULL DEFAULT 'Available',
-    FOREIGN KEY (eventID) REFERENCES Events(eventID) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (eventID) REFERENCES EstateSaleEvents(eventID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Create Customers table
@@ -51,12 +51,10 @@ CREATE TABLE Customers (
 CREATE TABLE Sales (
     saleID INT AUTO_INCREMENT PRIMARY KEY,
     customerID INT NOT NULL,
-    eventID INT NOT NULL,
     saleDate DATETIME NOT NULL,
     totalAmount DECIMAL(10,2) NOT NULL,
     paymentMethod ENUM('Cash','Credit Card','Check') NOT NULL,
-    FOREIGN KEY (customerID) REFERENCES Customers(customerID) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (eventID) REFERENCES Events(eventID) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (customerID) REFERENCES Customers(customerID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Create SoldItems intersection table
@@ -70,8 +68,8 @@ CREATE TABLE SoldItems (
     FOREIGN KEY (itemID) REFERENCES Items(itemID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Insert sample data for Events
-INSERT INTO Events (title, startDate, endDate, location, description) VALUES
+-- Insert sample data for EstateSaleEvents
+INSERT INTO EstateSaleEvents (title, startDate, endDate, location, description) VALUES
 ('Victorian Manor Estate Sale', '2025-08-01 09:00:00', '2025-08-03 16:00:00', '1234 Oak Street, Portland, OR 97201', 'Beautiful Victorian home with antique furniture, china, and collectibles'),
 ('Mid-Century Modern Collection', '2025-08-15 10:00:00', '2025-08-17 15:00:00', '5678 Pine Avenue, Beaverton, OR 97005', 'Stunning collection of 1950s-60s furniture and decor'),
 ('Collector''s Paradise Sale', '2025-09-01 08:00:00', '2025-09-02 17:00:00', '9012 Maple Drive, Lake Oswego, OR 97034', 'Rare books, coins, stamps, and vintage toys'),
@@ -113,12 +111,12 @@ INSERT INTO Items (eventID, name, category, description, startingPrice, status) 
 (5, 'Bronze Sculpture', 'Art', 'Small bronze sculpture of a dancer, signed', 180.00, 'Available');
 
 -- Insert sample data for Sales
-INSERT INTO Sales (customerID, eventID, saleDate, totalAmount, paymentMethod) VALUES
-(1, 1, '2025-08-01 14:30:00', 275.00, 'Credit Card'),
-(2, 2, '2025-08-15 11:45:00', 85.00, 'Cash'),
-(3, 3, '2025-09-01 16:20:00', 25.00, 'Cash'),
-(1, 1, '2025-08-02 10:15:00', 125.00, 'Credit Card'),
-(4, 2, '2025-08-16 13:30:00', 320.00, 'Check');
+INSERT INTO Sales (customerID, saleDate, totalAmount, paymentMethod) VALUES
+(1, '2025-08-01 14:30:00', 275.00, 'Credit Card'),
+(2, '2025-08-15 11:45:00', 85.00, 'Cash'),
+(3, '2025-09-01 16:20:00', 25.00, 'Cash'),
+(1, '2025-08-02 10:15:00', 125.00, 'Credit Card'),
+(4, '2025-08-16 13:30:00', 320.00, 'Check');
 
 -- Insert sample data for SoldItems
 INSERT INTO SoldItems (saleID, itemID, unitPrice, quantity) VALUES

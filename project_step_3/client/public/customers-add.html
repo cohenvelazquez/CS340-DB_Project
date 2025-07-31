@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Customer - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Add New Customer</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="customers.html">Customers</a> > Add New
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form class="entity-form" id="addCustomerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required 
+                               placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required 
+                               placeholder="Smith">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="john.smith@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" 
+                           placeholder="503-555-0123" maxlength="15">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Customer</button>
+                    <button type="reset" class="btn btn-secondary">Clear Form</button>
+                    <a href="customers.html" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-box">
+            <h3>Customer Information Guidelines</h3>
+            <ul>
+                <li>Email address must be unique and valid</li>
+                <li>Phone number format: XXX-XXX-XXXX (US format)</li>
+                <li>All customer information is kept confidential</li>
+                <li>Customer accounts can be used across multiple events</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('addCustomerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Customer creation functionality will be implemented in later steps.');
+        });
+
+        // Simple phone number formatting
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+            } else if (value.length >= 3) {
+                value = value.replace(/(\d{3})(\d{3})/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>

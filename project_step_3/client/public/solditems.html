@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sold Items - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sold Items (SoldItems Table)</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="sales.html">Sales</a> > Sold Items
+            </nav>
+        </header>
+
+        <div class="action-bar">
+            <div class="filter-controls">
+                <select id="saleFilter">
+                    <option value="">All Sales</option>
+                    <option value="1">Sale #1 - Sarah Johnson</option>
+                    <option value="2">Sale #2 - Michael Chen</option>
+                    <option value="3">Sale #3 - Emily Rodriguez</option>
+                    <option value="4">Sale #4 - Sarah Johnson</option>
+                    <option value="5">Sale #5 - David Thompson</option>
+                </select>
+                <input type="text" placeholder="Search items..." id="searchSoldItems">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Item ID</th>
+                        <th>Item Name</th>
+                        <th>Customer</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Line Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                        <td>Royal Doulton China Set</td>
+                        <td>Sarah Johnson</td>
+                        <td>$275.00</td>
+                        <td>1</td>
+                        <td>$275.00</td>
+                        <td>
+                            <button class="btn btn-small">Edit Qty</button>
+                            <button class="btn btn-small btn-danger">Remove</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>6</td>
+                        <td>Atomic Clock</td>
+                        <td>Michael Chen</td>
+                        <td>$85.00</td>
+                        <td>1</td>
+                        <td>$85.00</td>
+                        <td>
+                            <button class="btn btn-small">Edit Qty</button>
+                            <button class="btn btn-small btn-danger">Remove</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>9</td>
+                        <td>1964 Kennedy Half Dollar</td>
+                        <td>Emily Rodriguez</td>
+                        <td>$25.00</td>
+                        <td>1</td>
+                        <td>$25.00</td>
+                        <td>
+                            <button class="btn btn-small">Edit Qty</button>
+                            <button class="btn btn-small btn-danger">Remove</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>3</td>
+                        <td>Victorian Jewelry Box</td>
+                        <td>Sarah Johnson</td>
+                        <td>$125.00</td>
+                        <td>1</td>
+                        <td>$125.00</td>
+                        <td>
+                            <button class="btn btn-small">Edit Qty</button>
+                            <button class="btn btn-small btn-danger">Remove</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>7</td>
+                        <td>Boomerang Coffee Table</td>
+                        <td>David Thompson</td>
+                        <td>$320.00</td>
+                        <td>1</td>
+                        <td>$320.00</td>
+                        <td>
+                            <button class="btn btn-small">Edit Qty</button>
+                            <button class="btn btn-small btn-danger">Remove</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info-box">
+            <h3>About Sold Items</h3>
+            <p>This table represents the intersection between Sales and Items, showing the many-to-many relationship. Each row represents one item within a specific sale transaction.</p>
+            <ul>
+                <li><strong>Sale ID + Item ID:</strong> Composite primary key</li>
+                <li><strong>Unit Price:</strong> Final price paid (may differ from starting price)</li>
+                <li><strong>Quantity:</strong> Number of units sold (typically 1 for unique estate items)</li>
+                <li><strong>Line Total:</strong> Unit Price × Quantity</li>
+            </ul>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <span class="stat-number">5</span>
+                <span class="stat-label">Line Items</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">5</span>
+                <span class="stat-label">Items Sold</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">$830.00</span>
+                <span class="stat-label">Total Value</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">$166.00</span>
+                <span class="stat-label">Avg Item Price</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Function to populate the sold items table
+        function populateSoldItemsTable() {
+            const soldItems = getAllSoldItems();
+            const tbody = document.querySelector('.data-table tbody');
+            
+            // Clear existing rows
+            tbody.innerHTML = '';
+            
+            soldItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.saleID}</td>
+                    <td>${item.itemID}</td>
+                    <td>${item.itemName}</td>
+                    <td>${item.customerName}</td>
+                    <td>${formatCurrency(item.unitPrice)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatCurrency(item.lineTotal)}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="editQuantity(${item.saleID}, ${item.itemID})">Edit Qty</button>
+                        <button class="btn btn-small btn-danger" onclick="removeSoldItem(${item.saleID}, ${item.itemID})">Remove</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateStats(soldItems);
+        }
+
+        // Function to update statistics
+        function updateStats(soldItems) {
+            const totalItems = soldItems.length;
+            const totalValue = soldItems.reduce((sum, item) => sum + item.lineTotal, 0);
+            const avgPrice = totalItems > 0 ? totalValue / totalItems : 0;
+            
+            // Update stat cards
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers[0].textContent = totalItems; // Line Items
+            statNumbers[1].textContent = totalItems; // Items Sold (same as line items since quantity is always 1)
+            statNumbers[2].textContent = formatCurrency(totalValue); // Total Value
+            statNumbers[3].textContent = formatCurrency(avgPrice); // Avg Item Price
+        }
+
+        // Function to populate sale filter dropdown
+        function populateSaleFilter() {
+            const sales = getAllSales();
+            const saleFilter = document.getElementById('saleFilter');
+            
+            // Clear existing options except "All Sales"
+            const allSalesOption = saleFilter.firstElementChild;
+            saleFilter.innerHTML = '';
+            saleFilter.appendChild(allSalesOption);
+            
+            sales.forEach(sale => {
+                const option = document.createElement('option');
+                option.value = sale.saleID;
+                option.textContent = `Sale #${sale.saleID} - ${sale.customerName}`;
+                saleFilter.appendChild(option);
+            });
+        }
+
+        // Function to filter sold items by sale
+        function filterBySale() {
+            const saleFilter = document.getElementById('saleFilter');
+            const selectedSaleId = saleFilter.value;
+            
+            let soldItems;
+            if (selectedSaleId) {
+                soldItems = getSoldItemsBySale(selectedSaleId);
+            } else {
+                soldItems = getAllSoldItems();
+            }
+            
+            // Re-populate table with filtered data
+            const tbody = document.querySelector('.data-table tbody');
+            tbody.innerHTML = '';
+            
+            soldItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.saleID}</td>
+                    <td>${item.itemID}</td>
+                    <td>${item.itemName}</td>
+                    <td>${item.customerName}</td>
+                    <td>${formatCurrency(item.unitPrice)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatCurrency(item.lineTotal)}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="editQuantity(${item.saleID}, ${item.itemID})">Edit Qty</button>
+                        <button class="btn btn-small btn-danger" onclick="removeSoldItem(${item.saleID}, ${item.itemID})">Remove</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateStats(soldItems);
+        }
+
+        // Function to search sold items
+        function searchSoldItems() {
+            const searchTerm = document.getElementById('searchSoldItems').value.toLowerCase();
+            const allSoldItems = getAllSoldItems();
+            
+            const filteredItems = allSoldItems.filter(item => 
+                item.itemName.toLowerCase().includes(searchTerm) ||
+                item.customerName.toLowerCase().includes(searchTerm) ||
+                item.itemCategory.toLowerCase().includes(searchTerm)
+            );
+            
+            // Re-populate table with filtered data
+            const tbody = document.querySelector('.data-table tbody');
+            tbody.innerHTML = '';
+            
+            filteredItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.saleID}</td>
+                    <td>${item.itemID}</td>
+                    <td>${item.itemName}</td>
+                    <td>${item.customerName}</td>
+                    <td>${formatCurrency(item.unitPrice)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatCurrency(item.lineTotal)}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="editQuantity(${item.saleID}, ${item.itemID})">Edit Qty</button>
+                        <button class="btn btn-small btn-danger" onclick="removeSoldItem(${item.saleID}, ${item.itemID})">Remove</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateStats(filteredItems);
+        }
+
+        // Placeholder functions for button actions
+        function editQuantity(saleId, itemId) {
+            window.location.href = `edit-quantity.html?saleId=${saleId}&itemId=${itemId}`;
+        }
+
+        function removeSoldItem(saleId, itemId) {
+            if (confirm(`Are you sure you want to remove Item ${itemId} from Sale ${saleId}?`)) {
+                alert(`Removed Item ${itemId} from Sale ${saleId}`);
+                // In a real application, this would delete from the database
+                populateSoldItemsTable();
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            populateSoldItemsTable();
+            populateSaleFilter();
+            
+            // Add event listeners
+            document.getElementById('saleFilter').addEventListener('change', filterBySale);
+            document.getElementById('searchSoldItems').addEventListener('input', searchSoldItems);
+        });
+    </script>
+</body>
+</html>

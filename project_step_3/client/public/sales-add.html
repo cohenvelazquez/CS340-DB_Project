@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record New Sale - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Record New Sale</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="sales.html">Sales</a> > Record New
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form class="entity-form" id="addSaleForm">
+                <div class="form-group">
+                    <label for="customerId">Customer *</label>
+                    <select id="customerId" name="customerId" required>
+                        <option value="">Select a customer...</option>
+                        <option value="1">Sarah Johnson (sarah.johnson@email.com)</option>
+                        <option value="2">Michael Chen (mchen@email.com)</option>
+                        <option value="3">Emily Rodriguez (emily.r@email.com)</option>
+                        <option value="4">David Thompson (dthompson@email.com)</option>
+                        <option value="5">Lisa Anderson (lisa.anderson@email.com)</option>
+                    </select>
+                    <small><a href="customers-add.html">Add new customer</a></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventId">Estate Sale Event *</label>
+                    <select id="eventId" name="eventId" required>
+                        <option value="">Select an event...</option>
+                        <option value="1">Victorian Manor Estate Sale</option>
+                        <option value="2">Mid-Century Modern Collection</option>
+                        <option value="3">Collector's Paradise Sale</option>
+                        <option value="4">Garden Estate Sale</option>
+                        <option value="5">Art Lover's Estate</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="saleDate">Sale Date & Time *</label>
+                        <input type="datetime-local" id="saleDate" name="saleDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentMethod">Payment Method *</label>
+                        <select id="paymentMethod" name="paymentMethod" required>
+                            <option value="">Select payment method...</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Check">Check</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="totalAmount">Total Amount *</label>
+                    <input type="number" id="totalAmount" name="totalAmount" 
+                           step="0.01" min="0" required placeholder="0.00">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Record Sale</button>
+                    <button type="reset" class="btn btn-secondary">Clear Form</button>
+                    <a href="sales.html" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-box">
+            <h3>Sale Recording Process</h3>
+            <ul>
+                <li>Select existing customer or create new customer first</li>
+                <li>Choose the appropriate event where sale occurred</li>
+                <li>Enter exact date and time of transaction</li>
+                <li>Total amount should match sum of all items sold</li>
+                <li>After recording sale, add individual items via SoldItems</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>Next Steps After Sale Creation</h3>
+            <p>After creating this sale record, you'll need to:</p>
+            <ol>
+                <li>Go to the <a href="solditems.html">Sold Items</a> page</li>
+                <li>Add each individual item purchased in this sale</li>
+                <li>Update item status to "Sold" in the Items table</li>
+                <li>Verify total amounts match</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Set current date/time as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const formatted = now.toISOString().slice(0, 16);
+            document.getElementById('saleDate').value = formatted;
+        });
+
+        document.getElementById('addSaleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Sale recording functionality will be implemented in later steps.');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Estate Sale Events</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > Events
+            </nav>
+        </header>
+
+        <div class="action-bar">
+            <a href="events-add.html" class="btn btn-primary">+ Add New Event</a>
+            <div class="search-box">
+                <input type="text" placeholder="Search events..." id="searchEvents">
+                <button class="btn btn-secondary">Search</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Event ID</th>
+                        <th>Title</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Victorian Manor Estate Sale</td>
+                        <td>Aug 1, 2025 9:00 AM</td>
+                        <td>Aug 3, 2025 4:00 PM</td>
+                        <td>1234 Oak Street, Portland, OR</td>
+                        <td><span class="status upcoming">Upcoming</span></td>
+                        <td>
+                            <a href="events-edit.html?id=1" class="btn btn-small">Edit</a>
+                            <a href="items.html?eventId=1" class="btn btn-small">View Items</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Mid-Century Modern Collection</td>
+                        <td>Aug 15, 2025 10:00 AM</td>
+                        <td>Aug 17, 2025 3:00 PM</td>
+                        <td>5678 Pine Avenue, Beaverton, OR</td>
+                        <td><span class="status upcoming">Upcoming</span></td>
+                        <td>
+                            <a href="events-edit.html?id=2" class="btn btn-small">Edit</a>
+                            <a href="items.html?eventId=2" class="btn btn-small">View Items</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Collector's Paradise Sale</td>
+                        <td>Sep 1, 2025 8:00 AM</td>
+                        <td>Sep 2, 2025 5:00 PM</td>
+                        <td>9012 Maple Drive, Lake Oswego, OR</td>
+                        <td><span class="status planning">Planning</span></td>
+                        <td>
+                            <a href="events-edit.html?id=3" class="btn btn-small">Edit</a>
+                            <a href="items.html?eventId=3" class="btn btn-small">View Items</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <button class="btn btn-secondary">Previous</button>
+            <span class="page-info">Page 1 of 1</span>
+            <button class="btn btn-secondary">Next</button>
+        </div>
+    </div>
+</body>
+</html>

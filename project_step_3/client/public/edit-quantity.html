@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Quantity - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Sold Item Quantity</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="sales.html">Sales</a> > <a href="solditems.html">Sold Items</a> > Edit Quantity
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <div class="form-card">
+                <h2>Update Item Quantity</h2>
+                <form id="editQuantityForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="saleId">Sale ID:</label>
+                            <input type="text" id="saleId" name="saleId" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemId">Item ID:</label>
+                            <input type="text" id="itemId" name="itemId" readonly>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="itemName">Item Name:</label>
+                        <input type="text" id="itemName" name="itemName" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customerName">Customer:</label>
+                        <input type="text" id="customerName" name="customerName" readonly>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="unitPrice">Unit Price:</label>
+                            <input type="text" id="unitPrice" name="unitPrice" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantity: *</label>
+                            <input type="number" id="quantity" name="quantity" min="1" max="10" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lineTotal">Line Total:</label>
+                        <input type="text" id="lineTotal" name="lineTotal" readonly>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Update Quantity</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>Quantity Update Notes</h3>
+            <ul>
+                <li>Most estate sale items have a quantity of 1 (unique items)</li>
+                <li>Line total will be automatically calculated</li>
+                <li>Maximum quantity is limited to 10 per item</li>
+                <li>Changes will update the sale total amount</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Function to get URL parameters
+        function getURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                saleId: urlParams.get('saleId'),
+                itemId: urlParams.get('itemId')
+            };
+        }
+
+        // Function to load sold item data
+        function loadSoldItemData() {
+            const params = getURLParams();
+            if (!params.saleId || !params.itemId) {
+                alert('Missing sale or item information. Redirecting...');
+                window.location.href = 'solditems.html';
+                return;
+            }
+
+            const soldItems = getAllSoldItems();
+            const soldItem = soldItems.find(item => 
+                item.saleID == params.saleId && item.itemID == params.itemId
+            );
+
+            if (!soldItem) {
+                alert('Sold item not found. Redirecting...');
+                window.location.href = 'solditems.html';
+                return;
+            }
+
+            // Populate form fields
+            document.getElementById('saleId').value = soldItem.saleID;
+            document.getElementById('itemId').value = soldItem.itemID;
+            document.getElementById('itemName').value = soldItem.itemName;
+            document.getElementById('customerName').value = soldItem.customerName;
+            document.getElementById('unitPrice').value = formatCurrency(soldItem.unitPrice);
+            document.getElementById('quantity').value = soldItem.quantity;
+            document.getElementById('lineTotal').value = formatCurrency(soldItem.lineTotal);
+        }
+
+        // Function to update line total when quantity changes
+        function updateLineTotal() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const unitPriceText = document.getElementById('unitPrice').value;
+            const unitPrice = parseFloat(unitPriceText.replace(/[$,]/g, '')) || 0;
+            const lineTotal = quantity * unitPrice;
+            
+            document.getElementById('lineTotal').value = formatCurrency(lineTotal);
+        }
+
+        // Function to handle form submission
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const quantity = parseInt(formData.get('quantity'));
+            const saleId = formData.get('saleId');
+            const itemId = formData.get('itemId');
+            
+            if (quantity < 1 || quantity > 10) {
+                alert('Quantity must be between 1 and 10');
+                return;
+            }
+
+            // Simulate database update
+            alert(`Successfully updated quantity to ${quantity} for Sale ${saleId}, Item ${itemId}`);
+            
+            // Redirect back to sold items page
+            window.location.href = 'solditems.html';
+        }
+
+        // Function to cancel edit
+        function cancelEdit() {
+            if (confirm('Are you sure you want to cancel? Changes will be lost.')) {
+                window.location.href = 'solditems.html';
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSoldItemData();
+            
+            // Add quantity change listener
+            document.getElementById('quantity').addEventListener('input', updateLineTotal);
+            
+            // Add form submit listener
+            document.getElementById('editQuantityForm').addEventListener('submit', handleSubmit);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Items Catalog</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > Items
+            </nav>
+        </header>
+
+        <div class="action-bar">
+            <a href="items-add.html" class="btn btn-primary">+ Add New Item</a>
+            <div class="filter-controls">
+                <select id="eventFilter">
+                    <option value="">All Events</option>
+                    <option value="1">Victorian Manor Estate Sale</option>
+                    <option value="2">Mid-Century Modern Collection</option>
+                    <option value="3">Collector's Paradise Sale</option>
+                </select>
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Sold">Sold</option>
+                    <option value="Held">Held</option>
+                </select>
+                <input type="text" placeholder="Search items..." id="searchItems">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Event</th>
+                        <th>Starting Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Mahogany Dining Table</td>
+                        <td>Furniture</td>
+                        <td>Victorian Manor Estate Sale</td>
+                        <td>$450.00</td>
+                        <td><span class="status available">Available</span></td>
+                        <td>
+                            <a href="items-edit.html?id=1" class="btn btn-small">Edit</a>
+                            <button class="btn btn-small btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Royal Doulton China Set</td>
+                        <td>China</td>
+                        <td>Victorian Manor Estate Sale</td>
+                        <td>$275.00</td>
+                        <td><span class="status sold">Sold</span></td>
+                        <td>
+                            <a href="items-edit.html?id=2" class="btn btn-small">Edit</a>
+                            <button class="btn btn-small btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Victorian Jewelry Box</td>
+                        <td>Collectibles</td>
+                        <td>Victorian Manor Estate Sale</td>
+                        <td>$125.00</td>
+                        <td><span class="status available">Available</span></td>
+                        <td>
+                            <a href="items-edit.html?id=3" class="btn btn-small">Edit</a>
+                            <button class="btn btn-small btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Persian Rug</td>
+                        <td>Home Decor</td>
+                        <td>Victorian Manor Estate Sale</td>
+                        <td>$800.00</td>
+                        <td><span class="status held">Held</span></td>
+                        <td>
+                            <a href="items-edit.html?id=4" class="btn btn-small">Edit</a>
+                            <button class="btn btn-small btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Eames Lounge Chair</td>
+                        <td>Furniture</td>
+                        <td>Mid-Century Modern Collection</td>
+                        <td>$1,200.00</td>
+                        <td><span class="status available">Available</span></td>
+                        <td>
+                            <a href="items-edit.html?id=5" class="btn btn-small">Edit</a>
+                            <button class="btn btn-small btn-danger">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <span class="stat-number">14</span>
+                <span class="stat-label">Total Items</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">9</span>
+                <span class="stat-label">Available</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">4</span>
+                <span class="stat-label">Sold</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">1</span>
+                <span class="stat-label">Held</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Function to populate items table
+        function populateItemsTable() {
+            const items = getAllItems();
+            const tbody = document.querySelector('.data-table tbody');
+            
+            // Clear existing rows
+            tbody.innerHTML = '';
+            
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                const statusClass = item.status === 'Sold' ? 'status-sold' : 
+                                  item.status === 'Hold' ? 'status-hold' : 'status-available';
+                
+                row.innerHTML = `
+                    <td>${item.itemID}</td>
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td class="description-cell">${item.description}</td>
+                    <td>${formatCurrency(item.startingPrice)}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td>${item.eventTitle}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="editItem(${item.itemID})">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.itemID})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateItemsStats(items);
+        }
+
+        // Function to update statistics
+        function updateItemsStats(items) {
+            const availableItems = items.filter(item => item.status === 'Available').length;
+            const soldItems = items.filter(item => item.status === 'Sold').length;
+            const heldItems = items.filter(item => item.status === 'Hold').length;
+            const totalValue = items.reduce((sum, item) => sum + item.startingPrice, 0);
+            
+            // Update stat cards
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers[0].textContent = items.length; // Total Items
+            statNumbers[1].textContent = formatCurrency(totalValue); // Total Value
+            statNumbers[2].textContent = availableItems; // Available
+            statNumbers[3].textContent = soldItems; // Sold
+            statNumbers[4].textContent = heldItems; // Held
+        }
+
+        // Function to filter items by status
+        function filterByStatus() {
+            const statusFilter = document.getElementById('statusFilter');
+            const selectedStatus = statusFilter.value;
+            
+            let items = getAllItems();
+            if (selectedStatus) {
+                items = items.filter(item => item.status === selectedStatus);
+            }
+            
+            // Re-populate table with filtered data
+            const tbody = document.querySelector('.data-table tbody');
+            tbody.innerHTML = '';
+            
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                const statusClass = item.status === 'Sold' ? 'status-sold' : 
+                                  item.status === 'Hold' ? 'status-hold' : 'status-available';
+                
+                row.innerHTML = `
+                    <td>${item.itemID}</td>
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td class="description-cell">${item.description}</td>
+                    <td>${formatCurrency(item.startingPrice)}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td>${item.eventTitle}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="editItem(${item.itemID})">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.itemID})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Function to search items
+        function searchItems() {
+            const searchTerm = document.getElementById('searchItems').value.toLowerCase();
+            const allItems = getAllItems();
+            
+            const filteredItems = allItems.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.category.toLowerCase().includes(searchTerm) ||
+                item.description.toLowerCase().includes(searchTerm) ||
+                item.eventTitle.toLowerCase().includes(searchTerm)
+            );
+            
+            // Re-populate table with filtered data
+            const tbody = document.querySelector('.data-table tbody');
+            tbody.innerHTML = '';
+            
+            filteredItems.forEach(item => {
+                const row = document.createElement('tr');
+                const statusClass = item.status === 'Sold' ? 'status-sold' : 
+                                  item.status === 'Hold' ? 'status-hold' : 'status-available';
+                
+                row.innerHTML = `
+                    <td>${item.itemID}</td>
+                    <td>${item.name}</td>
+                    <td>${item.category}</td>
+                    <td class="description-cell">${item.description}</td>
+                    <td>${formatCurrency(item.startingPrice)}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td>${item.eventTitle}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="editItem(${item.itemID})">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.itemID})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Placeholder functions for button actions
+        function editItem(itemId) {
+            window.location.href = `edit-item.html?itemId=${itemId}`;
+        }
+
+        function deleteItem(itemId) {
+            const items = getAllItems();
+            const item = items.find(i => i.itemID == itemId);
+            
+            if (!item) {
+                alert('Item not found');
+                return;
+            }
+
+            // Check if item is sold
+            if (item.status === 'Sold') {
+                alert('Cannot delete sold items. Please remove from sales first.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
+                alert(`Deleted item ${itemId}: ${item.name}`);
+                populateItemsTable();
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            populateItemsTable();
+            
+            // Add event listeners if elements exist
+            const statusFilter = document.getElementById('statusFilter');
+            const searchInput = document.getElementById('searchItems');
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterByStatus);
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', searchItems);
+            }
+        });
+    </script>
+</body>
+</html>

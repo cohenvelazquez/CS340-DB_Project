@@ -1,0 +1,32 @@
+{
+  "name": "banana-phone-estate-services",
+  "version": "1.0.0",
+  "description": "Estate Sale Management System for Banana Phone Estate Services",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npm run start",
+    "build": "npm run build-react",
+    "build-react": "cd client && npm run build"
+  },
+  "keywords": [
+    "estate-sale",
+    "database",
+    "react",
+    "nodejs"
+  ],
+  "authors": [
+    "Cohen Velazquez",
+    "Joseph Lucciano Barberan"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "mysql": "^2.18.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

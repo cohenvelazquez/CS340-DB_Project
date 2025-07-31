@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Sale - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Sale</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="sales.html">Sales</a> > <a href="#" onclick="goBackToSale()">Sale Details</a> > Edit Sale
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <div class="form-card">
+                <h2>Update Sale Information</h2>
+                <form id="editSaleForm">
+                    <div class="form-group">
+                        <label for="saleId">Sale ID:</label>
+                        <input type="text" id="saleId" name="saleId" readonly>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="customerId">Customer: *</label>
+                            <select id="customerId" name="customerId" required>
+                                <option value="">Select Customer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventId">Event: *</label>
+                            <select id="eventId" name="eventId" required>
+                                <option value="">Select Event</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="saleDate">Sale Date: *</label>
+                            <input type="date" id="saleDate" name="saleDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Payment Method: *</label>
+                            <select id="paymentMethod" name="paymentMethod" required>
+                                <option value="">Select Payment Method</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Credit Card">Credit Card</option>
+                                <option value="Debit Card">Debit Card</option>
+                                <option value="Check">Check</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="totalAmount">Total Amount:</label>
+                        <input type="text" id="totalAmount" name="totalAmount" readonly>
+                        <small class="form-note">Total amount is calculated from sold items</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Update Sale</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="sold-items-section">
+                <h3>Items in this Sale</h3>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item ID</th>
+                                <th>Item Name</th>
+                                <th>Unit Price</th>
+                                <th>Quantity</th>
+                                <th>Line Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="saleItemsTable">
+                            <!-- Dynamic content will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="add-item-section">
+                    <button type="button" class="btn btn-secondary" onclick="addItemToSale()">+ Add Item to Sale</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>Edit Sale Notes</h3>
+            <ul>
+                <li>Customer and Event cannot be changed if items are already sold</li>
+                <li>Total amount is automatically calculated from line items</li>
+                <li>Date changes may affect reporting periods</li>
+                <li>Payment method can be updated for reconciliation</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Function to get URL parameters
+        function getURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                saleId: urlParams.get('saleId')
+            };
+        }
+
+        // Function to populate customer dropdown
+        function populateCustomers() {
+            const customers = getAllCustomers();
+            const customerSelect = document.getElementById('customerId');
+            
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customerID;
+                option.textContent = `${customer.firstName} ${customer.lastName}`;
+                customerSelect.appendChild(option);
+            });
+        }
+
+        // Function to populate event dropdown
+        function populateEvents() {
+            const events = getAllEvents();
+            const eventSelect = document.getElementById('eventId');
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.eventID;
+                option.textContent = event.title;
+                eventSelect.appendChild(option);
+            });
+        }
+
+        // Function to load sale data
+        function loadSaleData() {
+            const params = getURLParams();
+            if (!params.saleId) {
+                alert('Missing sale information. Redirecting...');
+                window.location.href = 'sales.html';
+                return;
+            }
+
+            const sales = getAllSales();
+            const sale = sales.find(s => s.saleID == params.saleId);
+
+            if (!sale) {
+                alert('Sale not found. Redirecting...');
+                window.location.href = 'sales.html';
+                return;
+            }
+
+            // Populate form fields
+            document.getElementById('saleId').value = sale.saleID;
+            document.getElementById('customerId').value = sale.customerID;
+            document.getElementById('eventId').value = sale.eventID;
+            document.getElementById('saleDate').value = sale.saleDate;
+            document.getElementById('paymentMethod').value = sale.paymentMethod;
+            document.getElementById('totalAmount').value = formatCurrency(sale.totalAmount);
+
+            // Load items for this sale
+            loadSaleItems(params.saleId);
+        }
+
+        // Function to load items for this sale
+        function loadSaleItems(saleId) {
+            const soldItems = getSoldItemsBySale(saleId);
+            const tbody = document.getElementById('saleItemsTable');
+            
+            // Clear existing rows
+            tbody.innerHTML = '';
+            
+            if (soldItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No items in this sale</td></tr>';
+                return;
+            }
+
+            soldItems.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.itemID}</td>
+                    <td>${item.itemName}</td>
+                    <td>${formatCurrency(item.unitPrice)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatCurrency(item.lineTotal)}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="editItemQuantity(${item.saleID}, ${item.itemID})">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="removeItemFromSale(${item.saleID}, ${item.itemID})">Remove</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Function to handle form submission
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const saleData = {
+                saleId: formData.get('saleId'),
+                customerId: formData.get('customerId'),
+                eventId: formData.get('eventId'),
+                saleDate: formData.get('saleDate'),
+                paymentMethod: formData.get('paymentMethod')
+            };
+            
+            // Validate required fields
+            if (!saleData.customerId || !saleData.eventId || !saleData.saleDate || !saleData.paymentMethod) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Simulate database update
+            alert(`Successfully updated Sale ${saleData.saleId}`);
+            
+            // Redirect back to sale details
+            window.location.href = `sale-details.html?saleId=${saleData.saleId}`;
+        }
+
+        // Action functions
+        function editItemQuantity(saleId, itemId) {
+            window.location.href = `edit-quantity.html?saleId=${saleId}&itemId=${itemId}`;
+        }
+
+        function removeItemFromSale(saleId, itemId) {
+            if (confirm(`Are you sure you want to remove Item ${itemId} from this sale?`)) {
+                alert(`Removed Item ${itemId} from Sale ${saleId}`);
+                // Reload items
+                loadSaleItems(saleId);
+            }
+        }
+
+        function addItemToSale() {
+            const params = getURLParams();
+            alert(`Add item to Sale ${params.saleId} - This would open an item selection dialog`);
+            // In a real application, this would open a modal or page to select available items
+        }
+
+        function cancelEdit() {
+            if (confirm('Are you sure you want to cancel? Changes will be lost.')) {
+                const params = getURLParams();
+                window.location.href = `sale-details.html?saleId=${params.saleId}`;
+            }
+        }
+
+        function goBackToSale() {
+            const params = getURLParams();
+            window.location.href = `sale-details.html?saleId=${params.saleId}`;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            populateCustomers();
+            populateEvents();
+            loadSaleData();
+            
+            // Add form submit listener
+            document.getElementById('editSaleForm').addEventListener('submit', handleSubmit);
+        });
+    </script>
+
+    <style>
+        .sold-items-section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .add-item-section {
+            margin-top: 1rem;
+            text-align: center;
+            padding: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .form-note {
+            color: #666;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+    </style>
+</body>
+</html>

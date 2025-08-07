@@ -187,21 +187,6 @@ To verify the RESET functionality works:
 - **Query Execution:** DML queries ready for integration
 - **Error Handling:** Planned for backend implementation
 
-## Database Operations Supported
-
-### CRUD Operations for All Entities:
-- **Events:** Create, Read, Update, Delete estate sale events
-- **Items:** Manage inventory with status tracking
-- **Customers:** Customer relationship management
-- **Sales:** Transaction recording and history
-- **SoldItems:** Intersection table for item-sale relationships
-
-### Advanced Features:
-- **Search & Filter:** Across all entity types
-- **Reporting:** Sales summaries and analytics
-- **Data Validation:** Client-side form validation
-- **Responsive Design:** Mobile-friendly interface
-
 ## Next Steps (Future Project Steps)
 
 1. **Database Connectivity:** Connect Express.js to MySQL
@@ -209,14 +194,6 @@ To verify the RESET functionality works:
 3. **Real-time Updates:** Dynamic data loading
 4. **User Authentication:** Login/session management
 5. **Error Handling:** Comprehensive error responses
-
-## Notes for Grading
-
-- All forms include proper validation and user feedback
-- Website is fully browsable with consistent navigation
-- DML queries are syntactically correct and comprehensive
-- Design follows modern web standards and accessibility guidelines
-- Ready for backend integration in subsequent project steps
 
 ## Authors
 - **Cohen Velazquez**

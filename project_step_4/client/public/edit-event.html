@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Estate Sale Event</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="events.html">Events</a> > Edit Event
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form id="editEventForm" class="data-form">
+                <div class="form-group">
+                    <label for="eventId">Event ID:</label>
+                    <input type="number" id="eventId" name="eventId" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Event Title:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" name="startDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" name="endDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="4"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Update Event</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='events.html'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Get event ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+
+        if (eventId) {
+            loadEvent(eventId);
+        }
+
+        async function loadEvent(id) {
+            try {
+                const response = await fetch(`/api/events/${id}`);
+                if (!response.ok) {
+                    throw new Error('Event not found');
+                }
+                
+                const event = await response.json();
+                
+                // Populate form fields
+                document.getElementById('eventId').value = event.eventID;
+                document.getElementById('title').value = event.title;
+                document.getElementById('startDate').value = event.startDate ? event.startDate.split('T')[0] : '';
+                document.getElementById('endDate').value = event.endDate ? event.endDate.split('T')[0] : '';
+                document.getElementById('location').value = event.location;
+                document.getElementById('description').value = event.description || '';
+            } catch (error) {
+                alert('Error loading event: ' + error.message);
+                window.location.href = 'events.html';
+            }
+        }
+
+        document.getElementById('editEventForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('title').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                location: document.getElementById('location').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                const response = await fetch(`/api/events/${eventId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Event updated successfully!');
+                    window.location.href = 'events.html';
+                } else {
+                    alert('Error updating event: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error updating event: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

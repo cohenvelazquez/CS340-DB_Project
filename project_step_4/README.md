@@ -1,7 +1,7 @@
 # Project Step 4 - Banana Phone Estate Services Web Application
 
 ## Website URL
-**http://classwork.engr.oregonstate.edu:9124**
+**http://classwork.engr.oregonstate.edu:6144**
 
 ## Project Overview
 
@@ -26,11 +26,19 @@ This is the Project Step 4 implementation of the Banana Phone Estate Services Es
   5. Observe that all original customers are restored
 
 ### ✅ READ Operations (SELECT queries)
-- **Events Page**: Displays all estate sale events from the database
-- **Customers Page**: Shows all customers with real-time data loading
-- **Items Page**: Lists all items with their associated events
-- **Sales Page**: Displays sales transactions with customer information
+- **Events Page**: Displays all estate sale events from the database with real-time data loading
+- **Customers Page**: Shows all customers with real-time data loading and search functionality  
+- **Items Page**: Lists all items with their associated events, loads dynamically from API
+- **Sales Page**: Displays sales transactions with customer information, loads dynamically from API
 - **Sold Items Page**: Shows the intersection table data with related information
+
+### ✅ UPDATE Operations (Edit Functionality)
+- **Edit Customer**: Full CRUD functionality - loads data from API, saves changes, updates list dynamically
+- **Edit Event**: Complete edit functionality for estate sale events with real-time data refresh
+- **Edit Item**: Update item information including name, category, and starting price with dynamic refresh
+- **Edit Sale**: Modify sales transactions with customer and payment information, updates dynamically
+- All edit forms load existing data from API and save changes to database
+- All browse pages refresh with updated data when returning from edit forms
 
 ### ✅ One CUD Operation for Demo
 - **Delete Customer**: Implemented on the customers page to demonstrate database changes
@@ -40,12 +48,12 @@ This is the Project Step 4 implementation of the Banana Phone Estate Services Es
 ### ✅ Dynamic Data Loading
 - All pages load data dynamically from the database via API endpoints
 - Real-time statistics on the homepage
-- Search functionality on customer management
+- Search and filter functionality on all management pages
+- Data refreshes automatically when returning from edit operations
 
 ## What Doesn't Work (Not Required for Step 4)
 
 - **INSERT operations**: Forms exist but submit functionality not yet implemented
-- **UPDATE operations**: Edit pages exist but are not yet functional
 - **Complex CRUD operations**: Will be implemented in future steps
 
 ## Project Structure
@@ -62,10 +70,18 @@ project_step_4/
     └── public/
         ├── index.html           # Homepage with RESET button
         ├── customers.html       # Customer management with DELETE demo
+        ├── customers-add.html   # Add new customer form
         ├── events.html          # Event browsing (READ operation)
+        ├── events-add.html      # Add new event form
         ├── items.html           # Item management (READ operation)
+        ├── items-add.html       # Add new item form
         ├── sales.html           # Sales browsing (READ operation)
+        ├── sales-add.html       # Add new sale form
         ├── solditems.html       # Sold items intersection (READ operation)
+        ├── edit-customer.html   # Edit customer form (not linked from homepage)
+        ├── edit-item.html       # Edit item form (not linked from homepage)
+        ├── edit-sale.html       # Edit sale form (not linked from homepage)
+        ├── data.js              # Sample data for frontend
         └── styles.css           # Global stylesheet
 ```
 
@@ -77,13 +93,21 @@ project_step_4/
 - `GET /api/items` - Retrieves all items with event information
 - `GET /api/sales` - Retrieves all sales with customer information
 - `GET /api/solditems` - Retrieves sold items intersection table
+- `GET /api/customers/:id` - Retrieves individual customer for editing
+- `GET /api/events/:id` - Retrieves individual event for editing
+- `GET /api/items/:id` - Retrieves individual item for editing
+- `GET /api/sales/:id` - Retrieves individual sale for editing
+- `PUT /api/customers/:id` - Updates customer information
+- `PUT /api/events/:id` - Updates event information
+- `PUT /api/items/:id` - Updates item information
+- `PUT /api/sales/:id` - Updates sale information
 - `DELETE /api/customers/:id` - Deletes a customer (demo CUD operation)
 
 ## Database Reset Verification
 
 To verify the RESET functionality works:
 
-1. **Navigate to**: http://classwork.engr.oregonstate.edu:9124/customers.html
+1. **Navigate to**: http://classwork.engr.oregonstate.edu:6144/customers.html
 2. **Before Reset**: Note the customers listed (Sarah Johnson, Michael Chen, etc.)
 3. **Make a Change**: Delete one customer using the red "Delete" button
 4. **Click RESET**: Use the red "RESET DATABASE" button in the header
@@ -130,7 +154,7 @@ To verify the RESET functionality works:
 - Contains website URL at top of first page
 
 ### 2. Website URL
-- **Main URL:** http://classwork.engr.oregonstate.edu:9124
+- **Main URL:** http://classwork.engr.oregonstate.edu:6144
 - Index page with navigation to all UI pages
 - Complete frontend implementation
 

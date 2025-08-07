@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Customer - Banana Phone Estate Services</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="data.js"></script>
 </head>
 <body>
     <div class="container">
@@ -17,302 +16,101 @@
         </header>
 
         <div class="form-container">
-            <div class="form-card">
-                <h2>Update Customer Information</h2>
-                <form id="editCustomerForm">
-                    <div class="form-group">
-                        <label for="customerId">Customer ID:</label>
-                        <input type="text" id="customerId" name="customerId" readonly>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="firstName">First Name: *</label>
-                            <input type="text" id="firstName" name="firstName" required maxlength="50">
-                        </div>
-                        <div class="form-group">
-                            <label for="lastName">Last Name: *</label>
-                            <input type="text" id="lastName" name="lastName" required maxlength="50">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address: *</label>
-                        <input type="email" id="email" name="email" required maxlength="100">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Phone Number: *</label>
-                        <input type="tel" id="phone" name="phone" required maxlength="20" placeholder="(503) 555-0123">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="createdAt">Customer Since:</label>
-                        <input type="text" id="createdAt" name="createdAt" readonly>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Update Customer</button>
-                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-                        <button type="button" class="btn btn-danger" onclick="deleteCustomer()">Delete Customer</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="customer-stats-card">
-                <h3>Customer Purchase History</h3>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number" id="totalSales">0</div>
-                        <div class="stat-label">Total Sales</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" id="totalSpent">$0.00</div>
-                        <div class="stat-label">Total Spent</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" id="avgSale">$0.00</div>
-                        <div class="stat-label">Avg Sale</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number" id="lastPurchase">Never</div>
-                        <div class="stat-label">Last Purchase</div>
-                    </div>
+            <form id="editCustomerForm" class="data-form">
+                <div class="form-group">
+                    <label for="customerId">Customer ID:</label>
+                    <input type="number" id="customerId" name="customerId" readonly>
                 </div>
-            </div>
-        </div>
 
-        <div class="info-box">
-            <h3>Edit Customer Notes</h3>
-            <ul>
-                <li>Email address must be unique and valid</li>
-                <li>Phone number should include area code</li>
-                <li>Customers with existing sales cannot be deleted</li>
-                <li>Customer ID and registration date cannot be changed</li>
-            </ul>
+                <div class="form-group">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone:</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Update Customer</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='customers.html'">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // Function to format currency
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD'
-            }).format(amount);
+        // Get customer ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerId = urlParams.get('id');
+
+        if (customerId) {
+            loadCustomer(customerId);
         }
 
-        // Function to format date
-        function formatDate(dateString) {
-            return new Date(dateString).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-
-        // Function to get URL parameters
-        function getURLParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return {
-                customerId: urlParams.get('customerId')
-            };
-        }
-
-        // Function to load customer data
-        function loadCustomerData() {
-            const params = getURLParams();
-            if (!params.customerId) {
-                alert('Missing customer information. Redirecting...');
-                window.location.href = 'customers.html';
-                return;
-            }
-
-            const customers = getAllCustomers();
-            const customer = customers.find(c => c.customerID == params.customerId);
-
-            if (!customer) {
-                alert('Customer not found. Redirecting...');
-                window.location.href = 'customers.html';
-                return;
-            }
-
-            // Populate form fields
-            document.getElementById('customerId').value = customer.customerID;
-            document.getElementById('firstName').value = customer.firstName;
-            document.getElementById('lastName').value = customer.lastName;
-            document.getElementById('email').value = customer.email;
-            document.getElementById('phone').value = customer.phone;
-            document.getElementById('createdAt').value = formatDate(customer.created_at);
-
-            // Update customer stats
-            updateCustomerStats(customer);
-        }
-
-        // Function to update customer statistics
-        function updateCustomerStats(customer) {
-            const sales = getAllSales().filter(sale => sale.customerID == customer.customerID);
-            const totalSales = sales.length;
-            const totalSpent = customer.totalPurchases;
-            const avgSale = totalSales > 0 ? totalSpent / totalSales : 0;
-            const lastPurchase = sales.length > 0 ? 
-                new Date(Math.max(...sales.map(sale => new Date(sale.saleDate)))).toLocaleDateString() : 
-                'Never';
-
-            document.getElementById('totalSales').textContent = totalSales;
-            document.getElementById('totalSpent').textContent = formatCurrency(totalSpent);
-            document.getElementById('avgSale').textContent = formatCurrency(avgSale);
-            document.getElementById('lastPurchase').textContent = lastPurchase;
-        }
-
-        // Function to validate email
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-
-        // Function to validate phone
-        function isValidPhone(phone) {
-            const phoneRegex = /^[\(\)\-\s\d\+]+$/;
-            return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
-        }
-
-        // Function to handle form submission
-        function handleSubmit(event) {
-            event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const customerData = {
-                customerId: formData.get('customerId'),
-                firstName: formData.get('firstName').trim(),
-                lastName: formData.get('lastName').trim(),
-                email: formData.get('email').trim(),
-                phone: formData.get('phone').trim()
-            };
-            
-            // Validate required fields
-            if (!customerData.firstName || !customerData.lastName || !customerData.email || !customerData.phone) {
-                alert('Please fill in all required fields');
-                return;
-            }
-
-            // Validate email format
-            if (!isValidEmail(customerData.email)) {
-                alert('Please enter a valid email address');
-                return;
-            }
-
-            // Validate phone format
-            if (!isValidPhone(customerData.phone)) {
-                alert('Please enter a valid phone number with area code');
-                return;
-            }
-
-            // Check for duplicate email (excluding current customer)
-            const customers = getAllCustomers();
-            const duplicateEmail = customers.some(c => 
-                c.customerID != customerData.customerId && 
-                c.email.toLowerCase() === customerData.email.toLowerCase()
-            );
-
-            if (duplicateEmail) {
-                alert('Email address already exists for another customer');
-                return;
-            }
-
-            // Simulate database update
-            alert(`Successfully updated customer: ${customerData.firstName} ${customerData.lastName}`);
-            
-            // Redirect back to customers page
-            window.location.href = 'customers.html';
-        }
-
-        // Function to delete customer
-        function deleteCustomer() {
-            const params = getURLParams();
-            const customers = getAllCustomers();
-            const customer = customers.find(c => c.customerID == params.customerId);
-            
-            if (!customer) {
-                alert('Customer not found');
-                return;
-            }
-
-            // Check if customer has sales
-            if (customer.numberOfSales > 0) {
-                alert('Cannot delete customers with existing sales. Please remove sales first.');
-                return;
-            }
-
-            if (confirm(`Are you sure you want to delete ${customer.firstName} ${customer.lastName}? This action cannot be undone.`)) {
-                alert(`Deleted customer ${customer.firstName} ${customer.lastName}`);
-                window.location.href = 'customers.html';
-            }
-        }
-
-        // Function to cancel edit
-        function cancelEdit() {
-            if (confirm('Are you sure you want to cancel? Changes will be lost.')) {
-                window.location.href = 'customers.html';
-            }
-        }
-
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCustomerData();
-            
-            // Add form submit listener
-            document.getElementById('editCustomerForm').addEventListener('submit', handleSubmit);
-            
-            // Add phone formatting
-            const phoneInput = document.getElementById('phone');
-            phoneInput.addEventListener('input', function() {
-                let value = this.value.replace(/\D/g, '');
-                if (value.length >= 6) {
-                    value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
-                } else if (value.length >= 3) {
-                    value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+        async function loadCustomer(id) {
+            try {
+                const response = await fetch(`/api/customers/${id}`);
+                if (!response.ok) {
+                    throw new Error('Customer not found');
                 }
-                this.value = value;
-            });
+                
+                const customer = await response.json();
+                
+                // Populate form fields
+                document.getElementById('customerId').value = customer.customerID;
+                document.getElementById('firstName').value = customer.firstName;
+                document.getElementById('lastName').value = customer.lastName;
+                document.getElementById('email').value = customer.email;
+                document.getElementById('phone').value = customer.phone || '';
+            } catch (error) {
+                alert('Error loading customer: ' + error.message);
+                window.location.href = 'customers.html';
+            }
+        }
+
+        document.getElementById('editCustomerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value
+            };
+
+            try {
+                const response = await fetch(`/api/customers/${customerId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Customer updated successfully!');
+                    window.location.href = 'customers.html';
+                } else {
+                    alert('Error updating customer: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error updating customer: ' + error.message);
+            }
         });
     </script>
-
-    <style>
-        .customer-stats-card {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 1rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-        }
-
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2563eb;
-            display: block;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-    </style>
 </body>
 </html>

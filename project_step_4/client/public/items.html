@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Items - Banana Phone Estate Services</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="data.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,6 +13,9 @@
             <nav class="breadcrumb">
                 <a href="index.html">Home</a> > Items
             </nav>
+            <div class="header-actions">
+                <button id="resetBtn" class="reset-btn" onclick="resetDatabase()">RESET DATABASE</button>
+            </div>
         </header>
 
         <div class="action-bar">
@@ -57,7 +59,7 @@
                         <td>$450.00</td>
                         <td><span class="status available">Available</span></td>
                         <td>
-                            <a href="items-edit.html?id=1" class="btn btn-small">Edit</a>
+                            <a href="edit-item.html?id=1" class="btn btn-small">Edit</a>
                             <button class="btn btn-small btn-danger">Delete</button>
                         </td>
                     </tr>
@@ -69,7 +71,7 @@
                         <td>$275.00</td>
                         <td><span class="status sold">Sold</span></td>
                         <td>
-                            <a href="items-edit.html?id=2" class="btn btn-small">Edit</a>
+                            <a href="edit-item.html?id=2" class="btn btn-small">Edit</a>
                             <button class="btn btn-small btn-danger">Delete</button>
                         </td>
                     </tr>
@@ -81,7 +83,7 @@
                         <td>$125.00</td>
                         <td><span class="status available">Available</span></td>
                         <td>
-                            <a href="items-edit.html?id=3" class="btn btn-small">Edit</a>
+                            <a href="edit-item.html?id=3" class="btn btn-small">Edit</a>
                             <button class="btn btn-small btn-danger">Delete</button>
                         </td>
                     </tr>
@@ -93,7 +95,7 @@
                         <td>$800.00</td>
                         <td><span class="status held">Held</span></td>
                         <td>
-                            <a href="items-edit.html?id=4" class="btn btn-small">Edit</a>
+                            <a href="edit-item.html?id=4" class="btn btn-small">Edit</a>
                             <button class="btn btn-small btn-danger">Delete</button>
                         </td>
                     </tr>
@@ -134,6 +136,30 @@
     </div>
 
     <script>
+        // Store loaded items globally for filtering
+        let allItemsData = [];
+        let itemsCache = null;
+        let cacheTimestamp = 0;
+        const CACHE_DURATION = 30000; // Cache for 30 seconds
+
+        // Load items when page loads and set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load items
+            loadItems();
+            
+            // Set up event listeners for search and filter
+            const statusFilter = document.getElementById('statusFilter');
+            const searchInput = document.getElementById('searchItems');
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterByStatus);
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', searchItems);
+            }
+        });
+
         // Function to format currency
         function formatCurrency(amount) {
             return new Intl.NumberFormat('en-US', {
@@ -142,27 +168,66 @@
             }).format(amount);
         }
 
+        // Function to load items from API with caching
+        async function loadItems(forceRefresh = false) {
+            try {
+                // Check cache first
+                const now = Date.now();
+                if (!forceRefresh && itemsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+                    console.log('Using cached items data');
+                    allItemsData = itemsCache;
+                    populateItemsTable(allItemsData);
+                    return;
+                }
+
+                console.log('Loading items from API...');
+                const response = await fetch('/api/items');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch items');
+                }
+                
+                allItemsData = await response.json();
+                
+                // Update cache
+                itemsCache = allItemsData;
+                cacheTimestamp = now;
+                
+                console.log('Items loaded:', allItemsData.length, 'items');
+                console.log('Sample item:', allItemsData[0]);
+                populateItemsTable(allItemsData);
+            } catch (error) {
+                console.error('Error loading items:', error);
+                const tbody = document.querySelector('.data-table tbody');
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Error loading items: ' + error.message + '</td></tr>';
+            }
+        }
+
         // Function to populate items table
-        function populateItemsTable() {
-            const items = getAllItems();
+        function populateItemsTable(items) {
             const tbody = document.querySelector('.data-table tbody');
             
             // Clear existing rows
             tbody.innerHTML = '';
+
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No items found</td></tr>';
+                return;
+            }
             
             items.forEach(item => {
                 const row = document.createElement('tr');
                 const statusClass = item.status === 'Sold' ? 'status-sold' : 
-                                  item.status === 'Hold' ? 'status-hold' : 'status-available';
+                                  item.status === 'Held' ? 'status-hold' : 'status-available';
                 
                 row.innerHTML = `
                     <td>${item.itemID}</td>
                     <td>${item.name}</td>
                     <td>${item.category}</td>
-                    <td class="description-cell">${item.description}</td>
+                    <td>${item.eventTitle}</td>
                     <td>${formatCurrency(item.startingPrice)}</td>
                     <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>${item.eventTitle}</td>
                     <td>
                         <button class="btn btn-small" onclick="editItem(${item.itemID})">Edit</button>
                         <button class="btn btn-small btn-danger" onclick="deleteItem(${item.itemID})">Delete</button>
@@ -178,16 +243,22 @@
         function updateItemsStats(items) {
             const availableItems = items.filter(item => item.status === 'Available').length;
             const soldItems = items.filter(item => item.status === 'Sold').length;
-            const heldItems = items.filter(item => item.status === 'Hold').length;
-            const totalValue = items.reduce((sum, item) => sum + item.startingPrice, 0);
+            const heldItems = items.filter(item => item.status === 'Held').length;
             
-            // Update stat cards
+            // Fix price parsing - ensure we have valid numbers
+            const totalValue = items.reduce((sum, item) => {
+                const price = parseFloat(item.startingPrice);
+                return sum + (isNaN(price) ? 0 : price);
+            }, 0);
+            
+            // Update stat cards - match the HTML structure
             const statNumbers = document.querySelectorAll('.stat-number');
-            statNumbers[0].textContent = items.length; // Total Items
-            statNumbers[1].textContent = formatCurrency(totalValue); // Total Value
-            statNumbers[2].textContent = availableItems; // Available
-            statNumbers[3].textContent = soldItems; // Sold
-            statNumbers[4].textContent = heldItems; // Held
+            if (statNumbers.length >= 4) {
+                statNumbers[0].textContent = items.length; // Total Items
+                statNumbers[1].textContent = availableItems; // Available
+                statNumbers[2].textContent = soldItems; // Sold
+                statNumbers[3].textContent = heldItems; // Held
+            }
         }
 
         // Function to filter items by status
@@ -195,83 +266,36 @@
             const statusFilter = document.getElementById('statusFilter');
             const selectedStatus = statusFilter.value;
             
-            let items = getAllItems();
+            let items = [...allItemsData]; // Use loaded data
             if (selectedStatus) {
                 items = items.filter(item => item.status === selectedStatus);
             }
             
-            // Re-populate table with filtered data
-            const tbody = document.querySelector('.data-table tbody');
-            tbody.innerHTML = '';
-            
-            items.forEach(item => {
-                const row = document.createElement('tr');
-                const statusClass = item.status === 'Sold' ? 'status-sold' : 
-                                  item.status === 'Hold' ? 'status-hold' : 'status-available';
-                
-                row.innerHTML = `
-                    <td>${item.itemID}</td>
-                    <td>${item.name}</td>
-                    <td>${item.category}</td>
-                    <td class="description-cell">${item.description}</td>
-                    <td>${formatCurrency(item.startingPrice)}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>${item.eventTitle}</td>
-                    <td>
-                        <button class="btn btn-small" onclick="editItem(${item.itemID})">Edit</button>
-                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.itemID})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+            populateItemsTable(items);
         }
 
         // Function to search items
         function searchItems() {
             const searchTerm = document.getElementById('searchItems').value.toLowerCase();
-            const allItems = getAllItems();
             
-            const filteredItems = allItems.filter(item => 
+            const filteredItems = allItemsData.filter(item => 
                 item.name.toLowerCase().includes(searchTerm) ||
                 item.category.toLowerCase().includes(searchTerm) ||
-                item.description.toLowerCase().includes(searchTerm) ||
+                (item.description && item.description.toLowerCase().includes(searchTerm)) ||
                 item.eventTitle.toLowerCase().includes(searchTerm)
             );
             
-            // Re-populate table with filtered data
-            const tbody = document.querySelector('.data-table tbody');
-            tbody.innerHTML = '';
-            
-            filteredItems.forEach(item => {
-                const row = document.createElement('tr');
-                const statusClass = item.status === 'Sold' ? 'status-sold' : 
-                                  item.status === 'Hold' ? 'status-hold' : 'status-available';
-                
-                row.innerHTML = `
-                    <td>${item.itemID}</td>
-                    <td>${item.name}</td>
-                    <td>${item.category}</td>
-                    <td class="description-cell">${item.description}</td>
-                    <td>${formatCurrency(item.startingPrice)}</td>
-                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
-                    <td>${item.eventTitle}</td>
-                    <td>
-                        <button class="btn btn-small" onclick="editItem(${item.itemID})">Edit</button>
-                        <button class="btn btn-small btn-danger" onclick="deleteItem(${item.itemID})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+            populateItemsTable(filteredItems);
         }
 
         // Placeholder functions for button actions
         function editItem(itemId) {
-            window.location.href = `edit-item.html?itemId=${itemId}`;
+            window.location.href = `edit-item.html?id=${itemId}`;
         }
 
-        function deleteItem(itemId) {
-            const items = getAllItems();
-            const item = items.find(i => i.itemID == itemId);
+        // Delete item function with API call
+        async function deleteItem(itemId) {
+            const item = allItemsData.find(i => i.itemID == itemId);
             
             if (!item) {
                 alert('Item not found');
@@ -285,27 +309,56 @@
             }
 
             if (confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
-                alert(`Deleted item ${itemId}: ${item.name}`);
-                populateItemsTable();
+                try {
+                    const response = await fetch(`/api/items/${itemId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        alert(`Successfully deleted item: ${item.name}`);
+                        loadItems(true); // Force refresh after deletion
+                    } else {
+                        const error = await response.json();
+                        alert(`Failed to delete item: ${error.message || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting item:', error);
+                    alert(`Error deleting item: ${error.message}`);
+                }
             }
         }
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            populateItemsTable();
+        // Function to reset the database
+        async function resetDatabase() {
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'RESETTING...';
             
-            // Add event listeners if elements exist
-            const statusFilter = document.getElementById('statusFilter');
-            const searchInput = document.getElementById('searchItems');
-            
-            if (statusFilter) {
-                statusFilter.addEventListener('change', filterByStatus);
+            try {
+                const response = await fetch('/api/reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Database has been reset successfully!');
+                    // Force reload items after reset
+                    loadItems(true);
+                } else {
+                    alert('Database reset failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Reset error:', error);
+                alert('Error resetting database: ' + error.message);
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'RESET DATABASE';
             }
-            
-            if (searchInput) {
-                searchInput.addEventListener('input', searchItems);
-            }
-        });
+        }
     </script>
 </body>
 </html>

@@ -13,6 +13,9 @@
             <nav class="breadcrumb">
                 <a href="index.html">Home</a> > Events
             </nav>
+            <div class="header-actions">
+                <button id="resetBtn" class="reset-btn" onclick="resetDatabase()">RESET DATABASE</button>
+            </div>
         </header>
 
         <div class="action-bar">
@@ -36,43 +39,8 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Victorian Manor Estate Sale</td>
-                        <td>Aug 1, 2025 9:00 AM</td>
-                        <td>Aug 3, 2025 4:00 PM</td>
-                        <td>1234 Oak Street, Portland, OR</td>
-                        <td><span class="status upcoming">Upcoming</span></td>
-                        <td>
-                            <a href="events-edit.html?id=1" class="btn btn-small">Edit</a>
-                            <a href="items.html?eventId=1" class="btn btn-small">View Items</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Mid-Century Modern Collection</td>
-                        <td>Aug 15, 2025 10:00 AM</td>
-                        <td>Aug 17, 2025 3:00 PM</td>
-                        <td>5678 Pine Avenue, Beaverton, OR</td>
-                        <td><span class="status upcoming">Upcoming</span></td>
-                        <td>
-                            <a href="events-edit.html?id=2" class="btn btn-small">Edit</a>
-                            <a href="items.html?eventId=2" class="btn btn-small">View Items</a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Collector's Paradise Sale</td>
-                        <td>Sep 1, 2025 8:00 AM</td>
-                        <td>Sep 2, 2025 5:00 PM</td>
-                        <td>9012 Maple Drive, Lake Oswego, OR</td>
-                        <td><span class="status planning">Planning</span></td>
-                        <td>
-                            <a href="events-edit.html?id=3" class="btn btn-small">Edit</a>
-                            <a href="items.html?eventId=3" class="btn btn-small">View Items</a>
-                        </td>
-                    </tr>
+                <tbody id="eventsTableBody">
+                    <!-- Events will be loaded dynamically from the API -->
                 </tbody>
             </table>
         </div>
@@ -83,5 +51,132 @@
             <button class="btn btn-secondary">Next</button>
         </div>
     </div>
+
+    <script>
+        // Load events when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+        });
+
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch events');
+                }
+                
+                const events = await response.json();
+                populateEventsTable(events);
+            } catch (error) {
+                console.error('Error loading events:', error);
+                document.getElementById('eventsTableBody').innerHTML = 
+                    '<tr><td colspan="7" class="text-center">Error loading events</td></tr>';
+            }
+        }
+
+        function populateEventsTable(events) {
+            const tbody = document.getElementById('eventsTableBody');
+            
+            if (events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No events found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = events.map(event => {
+                const startDate = new Date(event.startDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+                
+                const endDate = new Date(event.endDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+
+                // Determine status based on dates
+                const now = new Date();
+                const eventStart = new Date(event.startDate);
+                const eventEnd = new Date(event.endDate);
+                
+                let status = 'planning';
+                let statusClass = 'planning';
+                
+                if (now < eventStart) {
+                    status = 'Upcoming';
+                    statusClass = 'upcoming';
+                } else if (now >= eventStart && now <= eventEnd) {
+                    status = 'Active';
+                    statusClass = 'active';
+                } else {
+                    status = 'Completed';
+                    statusClass = 'completed';
+                }
+
+                return `
+                    <tr>
+                        <td>${event.eventID}</td>
+                        <td>${event.title}</td>
+                        <td>${startDate}</td>
+                        <td>${endDate}</td>
+                        <td>${event.location}</td>
+                        <td><span class="status ${statusClass}">${status}</span></td>
+                        <td>
+                            <a href="edit-event.html?id=${event.eventID}" class="btn btn-small">Edit</a>
+                            <a href="items.html?eventId=${event.eventID}" class="btn btn-small">View Items</a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Search functionality
+        document.getElementById('searchEvents').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#eventsTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Function to reset the database
+        async function resetDatabase() {
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'RESETTING...';
+            
+            try {
+                const response = await fetch('/api/reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Database has been reset successfully!');
+                    // Reload events after reset
+                    loadEvents();
+                } else {
+                    alert('Database reset failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Reset error:', error);
+                alert('Error resetting database: ' + error.message);
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'RESET DATABASE';
+            }
+        }
+    </script>
 </body>
 </html>

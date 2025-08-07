@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales & Transactions - Banana Phone Estate Services</title>
+        <title>Sales - Banana Phone Estate Services</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="data.js"></script>
 </head>
 <body>
     <div class="container">
@@ -14,6 +13,9 @@
             <nav class="breadcrumb">
                 <a href="index.html">Home</a> > Sales
             </nav>
+            <div class="header-actions">
+                <button id="resetBtn" class="reset-btn" onclick="resetDatabase()">RESET DATABASE</button>
+            </div>
         </header>
 
         <div class="action-bar">
@@ -147,6 +149,28 @@
     </div>
 
     <script>
+        // Store loaded sales globally for filtering
+        let allSalesData = [];
+
+        // Load sales when page loads and set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSales();
+            populateSalesTable();
+            populateEventFilter();
+            
+            // Set up event listeners for search and filter
+            const eventFilter = document.getElementById('eventFilter');
+            const searchInput = document.getElementById('searchSales');
+            
+            if (eventFilter) {
+                eventFilter.addEventListener('change', filterByEvent);
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', searchSales);
+            }
+        });
+
         // Function to format currency
         function formatCurrency(amount) {
             return new Intl.NumberFormat('en-US', {
@@ -164,13 +188,34 @@
             });
         }
 
+        // Function to load sales from API
+        async function loadSales() {
+            try {
+                const response = await fetch('/api/sales');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch sales');
+                }
+                
+                allSalesData = await response.json();
+                populateSalesTable(allSalesData);
+            } catch (error) {
+                console.error('Error loading sales:', error);
+                const tbody = document.querySelector('.data-table tbody');
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Error loading sales</td></tr>';
+            }
+        }
+
         // Function to populate sales table
-        function populateSalesTable() {
-            const sales = getAllSales();
+        function populateSalesTable(sales) {
             const tbody = document.querySelector('.data-table tbody');
             
             // Clear existing rows
             tbody.innerHTML = '';
+
+            if (sales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No sales found</td></tr>';
+                return;
+            }
             
             sales.forEach(sale => {
                 const row = document.createElement('tr');
@@ -178,7 +223,7 @@
                     <td>#${sale.saleID}</td>
                     <td>${formatDate(sale.saleDate)}</td>
                     <td>${sale.customerName}</td>
-                    <td>${sale.eventTitle}</td>
+                    <td>N/A</td>
                     <td>${formatCurrency(sale.totalAmount)}</td>
                     <td><span class="payment-badge">${sale.paymentMethod}</span></td>
                     <td>
@@ -196,7 +241,13 @@
         // Function to update statistics
         function updateSalesStats(sales) {
             const totalSales = sales.length;
-            const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+            
+            // Fix price parsing - ensure we have valid numbers
+            const totalRevenue = sales.reduce((sum, sale) => {
+                const amount = parseFloat(sale.totalAmount);
+                return sum + (isNaN(amount) ? 0 : amount);
+            }, 0);
+            
             const avgSaleAmount = totalSales > 0 ? totalRevenue / totalSales : 0;
             
             // Calculate payment method breakdown
@@ -205,7 +256,8 @@
                 if (!paymentMethods[sale.paymentMethod]) {
                     paymentMethods[sale.paymentMethod] = 0;
                 }
-                paymentMethods[sale.paymentMethod] += sale.totalAmount;
+                const amount = parseFloat(sale.totalAmount);
+                paymentMethods[sale.paymentMethod] += isNaN(amount) ? 0 : amount;
             });
             
             // Update stat cards
@@ -222,7 +274,7 @@
                 paymentItemsContainer.innerHTML = '';
                 
                 Object.entries(paymentMethods).forEach(([method, amount]) => {
-                    const percentage = ((amount / totalRevenue) * 100).toFixed(0);
+                    const percentage = totalRevenue > 0 ? ((amount / totalRevenue) * 100).toFixed(0) : 0;
                     const paymentItem = document.createElement('div');
                     paymentItem.className = 'payment-item';
                     paymentItem.innerHTML = `
@@ -239,91 +291,31 @@
             const eventFilter = document.getElementById('eventFilter');
             const selectedEventId = eventFilter.value;
             
-            let sales = getAllSales();
+            let sales = [...allSalesData]; // Use loaded data
             if (selectedEventId) {
                 sales = sales.filter(sale => sale.eventID == selectedEventId);
             }
             
-            // Re-populate table with filtered data
-            const tbody = document.querySelector('.data-table tbody');
-            tbody.innerHTML = '';
-            
-            sales.forEach(sale => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>#${sale.saleID}</td>
-                    <td>${formatDate(sale.saleDate)}</td>
-                    <td>${sale.customerName}</td>
-                    <td>${sale.eventTitle}</td>
-                    <td>${formatCurrency(sale.totalAmount)}</td>
-                    <td><span class="payment-badge">${sale.paymentMethod}</span></td>
-                    <td>
-                        <button class="btn btn-small" onclick="viewSale(${sale.saleID})">View</button>
-                        <button class="btn btn-small" onclick="editSale(${sale.saleID})">Edit</button>
-                        <button class="btn btn-small btn-danger" onclick="deleteSale(${sale.saleID})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            updateSalesStats(sales);
+            populateSalesTable(sales);
         }
 
         // Function to search sales
         function searchSales() {
             const searchTerm = document.getElementById('searchSales').value.toLowerCase();
-            const allSales = getAllSales();
             
-            const filteredSales = allSales.filter(sale => 
+            const filteredSales = allSalesData.filter(sale => 
                 sale.customerName.toLowerCase().includes(searchTerm) ||
-                sale.eventTitle.toLowerCase().includes(searchTerm) ||
                 sale.paymentMethod.toLowerCase().includes(searchTerm) ||
                 sale.saleID.toString().includes(searchTerm)
             );
             
-            // Re-populate table with filtered data
-            const tbody = document.querySelector('.data-table tbody');
-            tbody.innerHTML = '';
-            
-            filteredSales.forEach(sale => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>#${sale.saleID}</td>
-                    <td>${formatDate(sale.saleDate)}</td>
-                    <td>${sale.customerName}</td>
-                    <td>${sale.eventTitle}</td>
-                    <td>${formatCurrency(sale.totalAmount)}</td>
-                    <td><span class="payment-badge">${sale.paymentMethod}</span></td>
-                    <td>
-                        <button class="btn btn-small" onclick="viewSale(${sale.saleID})">View</button>
-                        <button class="btn btn-small" onclick="editSale(${sale.saleID})">Edit</button>
-                        <button class="btn btn-small btn-danger" onclick="deleteSale(${sale.saleID})">Delete</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            
-            updateSalesStats(filteredSales);
+            populateSalesTable(filteredSales);
         }
 
-        // Function to populate event filter dropdown
+        // Function to populate event filter dropdown - Remove since using API
         function populateEventFilter() {
-            const events = getAllEvents();
-            const eventFilter = document.getElementById('eventFilter');
-            
-            if (eventFilter) {
-                // Clear existing options except "All Events"
-                const allEventsOption = eventFilter.firstElementChild;
-                eventFilter.innerHTML = '';
-                eventFilter.appendChild(allEventsOption);
-                
-                events.forEach(event => {
-                    const option = document.createElement('option');
-                    option.value = event.eventID;
-                    option.textContent = event.title;
-                    eventFilter.appendChild(option);
-                });
-            }
+            // This function is no longer needed as we're using API data
+            // Event filtering can be added later if needed
         }
 
         // Placeholder functions for button actions
@@ -338,27 +330,41 @@
         function deleteSale(saleId) {
             if (confirm(`Are you sure you want to delete sale ${saleId}? This will also remove all associated sold items.`)) {
                 alert(`Deleted sale ${saleId} and all associated items`);
-                populateSalesTable();
+                loadSales(); // Reload sales after deletion
             }
         }
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            populateSalesTable();
-            populateEventFilter();
+        // Function to reset the database
+        async function resetDatabase() {
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'RESETTING...';
             
-            // Add event listeners if elements exist
-            const eventFilter = document.getElementById('eventFilter');
-            const searchInput = document.getElementById('searchSales');
-            
-            if (eventFilter) {
-                eventFilter.addEventListener('change', filterByEvent);
+            try {
+                const response = await fetch('/api/reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Database has been reset successfully!');
+                    // Reload sales after reset
+                    loadSales();
+                } else {
+                    alert('Database reset failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Reset error:', error);
+                alert('Error resetting database: ' + error.message);
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'RESET DATABASE';
             }
-            
-            if (searchInput) {
-                searchInput.addEventListener('input', searchSales);
-            }
-        });
+        }
     </script>
 </body>
 </html>

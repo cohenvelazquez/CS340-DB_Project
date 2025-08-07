@@ -132,6 +132,7 @@
                     <td>${customer.phone || 'N/A'}</td>
                     <td>${formattedDate}</td>
                     <td>
+                        <button class="btn btn-primary btn-sm" onclick="editCustomer(${customer.customerID})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.customerID})">Delete</button>
                         <a href="customer-details.html?id=${customer.customerID}" class="btn btn-secondary btn-sm">View</a>
                     </td>
@@ -187,6 +188,7 @@
                     <td>${customer.phone || 'N/A'}</td>
                     <td>${formattedDate}</td>
                     <td>
+                        <button class="btn btn-primary btn-sm" onclick="editCustomer(${customer.customerID})">Edit</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.customerID})">Delete</button>
                         <a href="customer-details.html?id=${customer.customerID}" class="btn btn-secondary btn-sm">View</a>
                     </td>
@@ -225,6 +227,11 @@
                     alert('Error deleting customer: ' + error.message);
                 }
             }
+        }
+
+        // Function to edit customer
+        function editCustomer(customerId) {
+            window.location.href = `edit-customer.html?id=${customerId}`;
         }
 
         // Event listeners

@@ -83,7 +83,7 @@ project_step_4/
 
 To verify the RESET functionality works:
 
-1. **Navigate to**: http://classwork.engr.oregonstate.edu:9124/customers.html
+1. **Navigate to**: http://classwork.engr.oregonstate.edu:6144/customers.html
 2. **Before Reset**: Note the customers listed (Sarah Johnson, Michael Chen, etc.)
 3. **Make a Change**: Delete one customer using the red "Delete" button
 4. **Click RESET**: Use the red "RESET DATABASE" button in the header

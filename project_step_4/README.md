@@ -1,7 +1,7 @@
 # Project Step 4 - Banana Phone Estate Services Web Application
 
 ## Website URL
-**http://classwork.engr.oregonstate.edu:9124**
+**http://classwork.engr.oregonstate.edu:6144**
 
 ## Project Overview
 
@@ -130,7 +130,7 @@ To verify the RESET functionality works:
 - Contains website URL at top of first page
 
 ### 2. Website URL
-- **Main URL:** http://classwork.engr.oregonstate.edu:9124
+- **Main URL:** http://classwork.engr.oregonstate.edu:6144
 - Index page with navigation to all UI pages
 - Complete frontend implementation
 

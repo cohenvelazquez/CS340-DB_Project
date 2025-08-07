@@ -16,7 +16,7 @@ This is the Project Step 4 implementation of the Banana Phone Estate Services Es
 
 ## What Works
 
-### ✅ Database Reset Functionality
+### Database Reset Functionality
 - **RESET Button**: Present on the homepage (index.html) and customer management page
 - **How to verify RESET works**: 
   1. Visit the customer management page (`/customers.html`)
@@ -25,27 +25,19 @@ This is the Project Step 4 implementation of the Banana Phone Estate Services Es
   4. Click "RESET DATABASE" button
   5. Observe that all original customers are restored
 
-### ✅ READ Operations (SELECT queries)
-- **Events Page**: Displays all estate sale events from the database with real-time data loading
-- **Customers Page**: Shows all customers with real-time data loading and search functionality  
-- **Items Page**: Lists all items with their associated events, loads dynamically from API
-- **Sales Page**: Displays sales transactions with customer information, loads dynamically from API
+### READ Operations (SELECT queries)
+- **Events Page**: Displays all estate sale events from the database
+- **Customers Page**: Shows all customers with real-time data loading
+- **Items Page**: Lists all items with their associated events
+- **Sales Page**: Displays sales transactions with customer information
 - **Sold Items Page**: Shows the intersection table data with related information
 
-### ✅ UPDATE Operations (Edit Functionality)
-- **Edit Customer**: Full CRUD functionality - loads data from API, saves changes, updates list dynamically
-- **Edit Event**: Complete edit functionality for estate sale events with real-time data refresh
-- **Edit Item**: Update item information including name, category, and starting price with dynamic refresh
-- **Edit Sale**: Modify sales transactions with customer and payment information, updates dynamically
-- All edit forms load existing data from API and save changes to database
-- All browse pages refresh with updated data when returning from edit forms
-
-### ✅ One CUD Operation for Demo
+### One CUD Operation for Demo
 - **Delete Customer**: Implemented on the customers page to demonstrate database changes
 - Uses the `sp_delete_customer` stored procedure
 - Includes proper error handling and confirmation dialogs
 
-### ✅ Dynamic Data Loading
+### Dynamic Data Loading
 - All pages load data dynamically from the database via API endpoints
 - Real-time statistics on the homepage
 - Search and filter functionality on all management pages
@@ -211,21 +203,6 @@ To verify the RESET functionality works:
 - **Query Execution:** DML queries ready for integration
 - **Error Handling:** Planned for backend implementation
 
-## Database Operations Supported
-
-### CRUD Operations for All Entities:
-- **Events:** Create, Read, Update, Delete estate sale events
-- **Items:** Manage inventory with status tracking
-- **Customers:** Customer relationship management
-- **Sales:** Transaction recording and history
-- **SoldItems:** Intersection table for item-sale relationships
-
-### Advanced Features:
-- **Search & Filter:** Across all entity types
-- **Reporting:** Sales summaries and analytics
-- **Data Validation:** Client-side form validation
-- **Responsive Design:** Mobile-friendly interface
-
 ## Next Steps (Future Project Steps)
 
 1. **Database Connectivity:** Connect Express.js to MySQL
@@ -233,14 +210,6 @@ To verify the RESET functionality works:
 3. **Real-time Updates:** Dynamic data loading
 4. **User Authentication:** Login/session management
 5. **Error Handling:** Comprehensive error responses
-
-## Notes for Grading
-
-- All forms include proper validation and user feedback
-- Website is fully browsable with consistent navigation
-- DML queries are syntactically correct and comprehensive
-- Design follows modern web standards and accessibility guidelines
-- Ready for backend integration in subsequent project steps
 
 ## Authors
 - **Cohen Velazquez**

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Details - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Customer Details</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="customers.html">Customers</a> > Customer Details
+            </nav>
+        </header>
+
+        <div class="customer-profile">
+            <div class="customer-info-card">
+                <div class="customer-header">
+                    <h2 id="customerName">Loading...</h2>
+                    <div class="customer-id">Customer ID: <span id="customerId">-</span></div>
+                </div>
+                
+                <div class="customer-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value" id="customerEmail">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Phone:</span>
+                        <span class="detail-value" id="customerPhone">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Customer Since:</span>
+                        <span class="detail-value" id="customerSince">-</span>
+                    </div>
+                </div>
+
+                <div class="customer-actions">
+                    <button class="btn btn-primary" onclick="editCustomer()">Edit Customer</button>
+                    <button class="btn btn-secondary" onclick="viewSales()">View All Sales</button>
+                    <button class="btn btn-danger" onclick="deleteCustomer()">Delete Customer</button>
+                </div>
+            </div>
+
+            <div class="customer-stats-card">
+                <h3>Purchase Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalSales">0</div>
+                        <div class="stat-label">Total Sales</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalSpent">$0.00</div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="avgSale">$0.00</div>
+                        <div class="stat-label">Average Sale</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="lastPurchase">Never</div>
+                        <div class="stat-label">Last Purchase</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sales-history">
+            <h3>Recent Sales History</h3>
+            <div class="table-container">
+                <table class="data-table" id="salesTable">
+                    <thead>
+                        <tr>
+                            <th>Sale ID</th>
+                            <th>Date</th>
+                            <th>Event</th>
+                            <th>Total Amount</th>
+                            <th>Items</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody">
+                        <!-- Data populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="back-navigation">
+            <button class="btn btn-secondary" onclick="goBack()">Back to Customers</button>
+        </div>
+    </div>
+
+    <script>
+        let currentCustomer = null;
+
+        // Function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Function to format date
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Function to format short date
+        function formatShortDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Function to get URL parameters
+        function getURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                customerId: urlParams.get('customerId')
+            };
+        }
+
+        // Function to load customer data
+        function loadCustomerData() {
+            const params = getURLParams();
+            if (!params.customerId) {
+                alert('Missing customer information. Redirecting...');
+                window.location.href = 'customers.html';
+                return;
+            }
+
+            const customers = getAllCustomers();
+            const customer = customers.find(c => c.customerID == params.customerId);
+
+            if (!customer) {
+                alert('Customer not found. Redirecting...');
+                window.location.href = 'customers.html';
+                return;
+            }
+
+            currentCustomer = customer;
+
+            // Update customer information
+            document.getElementById('customerName').textContent = `${customer.firstName} ${customer.lastName}`;
+            document.getElementById('customerId').textContent = customer.customerID;
+            document.getElementById('customerEmail').textContent = customer.email;
+            document.getElementById('customerPhone').textContent = customer.phone;
+            document.getElementById('customerSince').textContent = formatDate(customer.created_at);
+
+            // Update customer statistics
+            updateCustomerStats(customer);
+
+            // Load sales history
+            loadSalesHistory(customer.customerID);
+        }
+
+        // Function to update customer statistics
+        function updateCustomerStats(customer) {
+            const sales = getAllSales().filter(sale => sale.customerID == customer.customerID);
+            const totalSales = sales.length;
+            const totalSpent = customer.totalPurchases;
+            const avgSale = totalSales > 0 ? totalSpent / totalSales : 0;
+            const lastPurchase = sales.length > 0 ? 
+                new Date(Math.max(...sales.map(sale => new Date(sale.saleDate)))).toLocaleDateString() : 
+                'Never';
+
+            document.getElementById('totalSales').textContent = totalSales;
+            document.getElementById('totalSpent').textContent = formatCurrency(totalSpent);
+            document.getElementById('avgSale').textContent = formatCurrency(avgSale);
+            document.getElementById('lastPurchase').textContent = lastPurchase;
+        }
+
+        // Function to load sales history
+        function loadSalesHistory(customerId) {
+            const sales = getAllSales().filter(sale => sale.customerID == customerId);
+            const tableBody = document.getElementById('salesTableBody');
+            
+            if (!tableBody) {
+                console.error('Sales table body not found');
+                return;
+            }
+
+            tableBody.innerHTML = '';
+
+            if (sales.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="6" class="no-data">No sales found for this customer</td>
+                `;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            // Sort sales by date (most recent first)
+            sales.sort((a, b) => new Date(b.saleDate) - new Date(a.saleDate));
+
+            sales.forEach(sale => {
+                const soldItems = getAllSoldItems().filter(item => item.saleID == sale.saleID);
+                const itemCount = soldItems.length;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${sale.saleID}</td>
+                    <td>${formatShortDate(sale.saleDate)}</td>
+                    <td>${sale.eventName || 'General Sale'}</td>
+                    <td>${formatCurrency(sale.totalAmount)}</td>
+                    <td>${itemCount} item${itemCount !== 1 ? 's' : ''}</td>
+                    <td class="actions">
+                        <button class="btn btn-small" onclick="viewSaleDetails(${sale.saleID})">View Details</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to edit customer
+        function editCustomer() {
+            if (currentCustomer) {
+                window.location.href = `edit-customer.html?customerId=${currentCustomer.customerID}`;
+            }
+        }
+
+        // Function to view all sales
+        function viewSales() {
+            if (currentCustomer) {
+                window.location.href = `sales.html?customerId=${currentCustomer.customerID}`;
+            }
+        }
+
+        // Function to delete customer
+        function deleteCustomer() {
+            if (!currentCustomer) {
+                alert('Customer information not loaded');
+                return;
+            }
+
+            if (currentCustomer.numberOfSales > 0) {
+                alert('Cannot delete customers with existing sales. Please remove sales first.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${currentCustomer.firstName} ${currentCustomer.lastName}? This action cannot be undone.`)) {
+                alert(`Deleted customer ${currentCustomer.firstName} ${currentCustomer.lastName}`);
+                window.location.href = 'customers.html';
+            }
+        }
+
+        // Function to view sale details
+        function viewSaleDetails(saleId) {
+            window.location.href = `sale-details.html?saleId=${saleId}`;
+        }
+
+        // Function to go back
+        function goBack() {
+            window.location.href = 'customers.html';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCustomerData();
+        });
+    </script>
+
+    <style>
+        .customer-profile {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .customer-info-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .customer-header {
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .customer-header h2 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+        }
+
+        .customer-id {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .customer-details {
+            margin-bottom: 2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .detail-value {
+            color: #6b7280;
+        }
+
+        .customer-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .customer-stats-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2563eb;
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .sales-history {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .sales-history h3 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+        }
+
+        .back-navigation {
+            text-align: center;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .customer-profile {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .customer-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Customer Management</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > Customers
+            </nav>
+            <div class="header-actions">
+                <button id="resetBtn" class="reset-btn" onclick="resetDatabase()">RESET DATABASE</button>
+            </div>
+        </header>
+
+        <div class="action-bar">
+            <a href="customers-add.html" class="btn btn-primary">+ Add New Customer</a>
+            <div class="search-box">
+                <input type="text" placeholder="Search customers..." id="searchCustomers">
+                <button class="btn btn-secondary" onclick="searchCustomers()">Search</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table" id="customersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Customer Since</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    <!-- Data populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <span class="stat-number" id="totalCustomers">0</span>
+                <span class="stat-label">Total Customers</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="activeCustomers">0</span>
+                <span class="stat-label">Active Buyers</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalSpent">$0.00</span>
+                <span class="stat-label">Total Spent</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="avgPerCustomer">$0.00</span>
+                <span class="stat-label">Avg per Customer</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let customersData = [];
+
+        // Function to reset the database
+        async function resetDatabase() {
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'RESETTING...';
+            
+            try {
+                const response = await fetch('/api/reset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Database has been reset successfully!');
+                    // Reload customers data
+                    await loadCustomers();
+                } else {
+                    alert('Database reset failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Reset error:', error);
+                alert('Error resetting database: ' + error.message);
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'RESET DATABASE';
+            }
+        }
+
+        // Function to load customers from API
+        async function loadCustomers() {
+            try {
+                const response = await fetch('/api/customers');
+                customersData = await response.json();
+                populateCustomersTable();
+                updateStats();
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                alert('Error loading customers data');
+            }
+        }
+
+        // Function to populate customers table
+        function populateCustomersTable() {
+            const tableBody = document.getElementById('customersTableBody');
+            
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            customersData.forEach(customer => {
+                const row = document.createElement('tr');
+                
+                const formattedDate = new Date(customer.created_at).toLocaleDateString();
+                
+                row.innerHTML = `
+                    <td>${customer.customerID}</td>
+                    <td>${customer.firstName} ${customer.lastName}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone || 'N/A'}</td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.customerID})">Delete</button>
+                        <a href="customer-details.html?id=${customer.customerID}" class="btn btn-secondary btn-sm">View</a>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to update statistics
+        function updateStats() {
+            const totalCustomersElement = document.getElementById('totalCustomers');
+            if (totalCustomersElement) {
+                totalCustomersElement.textContent = customersData.length;
+            }
+        }
+
+        // Function to search customers
+        function searchCustomers() {
+            const searchTerm = document.getElementById('searchCustomers').value.toLowerCase();
+            
+            if (!searchTerm) {
+                populateCustomersTable();
+                return;
+            }
+            
+            const filteredCustomers = customersData.filter(customer => 
+                customer.firstName.toLowerCase().includes(searchTerm) ||
+                customer.lastName.toLowerCase().includes(searchTerm) ||
+                customer.email.toLowerCase().includes(searchTerm)
+            );
+            
+            displayFilteredCustomers(filteredCustomers);
+        }
+
+        // Function to display filtered customers
+        function displayFilteredCustomers(customers) {
+            const tableBody = document.getElementById('customersTableBody');
+            
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            customers.forEach(customer => {
+                const row = document.createElement('tr');
+                
+                const formattedDate = new Date(customer.created_at).toLocaleDateString();
+                
+                row.innerHTML = `
+                    <td>${customer.customerID}</td>
+                    <td>${customer.firstName} ${customer.lastName}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone || 'N/A'}</td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${customer.customerID})">Delete</button>
+                        <a href="customer-details.html?id=${customer.customerID}" class="btn btn-secondary btn-sm">View</a>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Function to delete customer (for demonstration purposes)
+        async function deleteCustomer(customerId) {
+            const customer = customersData.find(c => c.customerID === customerId);
+            
+            if (!customer) {
+                alert('Customer not found');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${customer.firstName} ${customer.lastName}? This action cannot be undone.`)) {
+                try {
+                    const response = await fetch(`/api/customers/${customerId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(`Successfully deleted customer ${customer.firstName} ${customer.lastName}`);
+                        // Reload customers data
+                        await loadCustomers();
+                    } else {
+                        alert('Failed to delete customer: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    alert('Error deleting customer: ' + error.message);
+                }
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCustomers();
+            
+            // Add event listeners if elements exist
+            const searchInput = document.getElementById('searchCustomers');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', searchCustomers);
+            }
+        });
+    </script>
+</body>
+</html>

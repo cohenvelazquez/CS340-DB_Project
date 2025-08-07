@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales & Transactions - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sales & Transactions</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > Sales
+            </nav>
+        </header>
+
+        <div class="action-bar">
+            <a href="sales-add.html" class="btn btn-primary">+ Record New Sale</a>
+            <div class="filter-controls">
+                <select id="eventFilter">
+                    <option value="">All Events</option>
+                    <option value="1">Victorian Manor Estate Sale</option>
+                    <option value="2">Mid-Century Modern Collection</option>
+                    <option value="3">Collector's Paradise Sale</option>
+                </select>
+                <input type="date" id="dateFilter" placeholder="Filter by date">
+                <input type="text" placeholder="Search sales..." id="searchSales">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Customer</th>
+                        <th>Event</th>
+                        <th>Sale Date</th>
+                        <th>Total Amount</th>
+                        <th>Payment Method</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Sarah Johnson</td>
+                        <td>Victorian Manor Estate Sale</td>
+                        <td>Aug 1, 2025 2:30 PM</td>
+                        <td>$275.00</td>
+                        <td>Credit Card</td>
+                        <td>
+                            <a href="solditems.html?saleId=1" class="btn btn-small">View Items</a>
+                            <button class="btn btn-small">Receipt</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Michael Chen</td>
+                        <td>Mid-Century Modern Collection</td>
+                        <td>Aug 15, 2025 11:45 AM</td>
+                        <td>$85.00</td>
+                        <td>Cash</td>
+                        <td>
+                            <a href="solditems.html?saleId=2" class="btn btn-small">View Items</a>
+                            <button class="btn btn-small">Receipt</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Emily Rodriguez</td>
+                        <td>Collector's Paradise Sale</td>
+                        <td>Sep 1, 2025 4:20 PM</td>
+                        <td>$25.00</td>
+                        <td>Cash</td>
+                        <td>
+                            <a href="solditems.html?saleId=3" class="btn btn-small">View Items</a>
+                            <button class="btn btn-small">Receipt</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Sarah Johnson</td>
+                        <td>Victorian Manor Estate Sale</td>
+                        <td>Aug 2, 2025 10:15 AM</td>
+                        <td>$125.00</td>
+                        <td>Credit Card</td>
+                        <td>
+                            <a href="solditems.html?saleId=4" class="btn btn-small">View Items</a>
+                            <button class="btn btn-small">Receipt</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>David Thompson</td>
+                        <td>Mid-Century Modern Collection</td>
+                        <td>Aug 16, 2025 1:30 PM</td>
+                        <td>$320.00</td>
+                        <td>Check</td>
+                        <td>
+                            <a href="solditems.html?saleId=5" class="btn btn-small">View Items</a>
+                            <button class="btn btn-small">Receipt</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <span class="stat-number">5</span>
+                <span class="stat-label">Total Sales</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">$830.00</span>
+                <span class="stat-label">Total Revenue</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">$166.00</span>
+                <span class="stat-label">Average Sale</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">5</span>
+                <span class="stat-label">Items Sold</span>
+            </div>
+        </div>
+
+        <div class="payment-breakdown">
+            <h3>Payment Methods</h3>
+            <div class="payment-stats">
+                <div class="payment-item">
+                    <span class="payment-method">Credit Card</span>
+                    <span class="payment-amount">$400.00 (48%)</span>
+                </div>
+                <div class="payment-item">
+                    <span class="payment-method">Cash</span>
+                    <span class="payment-amount">$110.00 (13%)</span>
+                </div>
+                <div class="payment-item">
+                    <span class="payment-method">Check</span>
+                    <span class="payment-amount">$320.00 (39%)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        // Function to format date
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Function to populate sales table
+        function populateSalesTable() {
+            const sales = getAllSales();
+            const tbody = document.querySelector('.data-table tbody');
+            
+            // Clear existing rows
+            tbody.innerHTML = '';
+            
+            sales.forEach(sale => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>#${sale.saleID}</td>
+                    <td>${formatDate(sale.saleDate)}</td>
+                    <td>${sale.customerName}</td>
+                    <td>${sale.eventTitle}</td>
+                    <td>${formatCurrency(sale.totalAmount)}</td>
+                    <td><span class="payment-badge">${sale.paymentMethod}</span></td>
+                    <td>
+                        <button class="btn btn-small" onclick="viewSale(${sale.saleID})">View</button>
+                        <button class="btn btn-small" onclick="editSale(${sale.saleID})">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteSale(${sale.saleID})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateSalesStats(sales);
+        }
+
+        // Function to update statistics
+        function updateSalesStats(sales) {
+            const totalSales = sales.length;
+            const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+            const avgSaleAmount = totalSales > 0 ? totalRevenue / totalSales : 0;
+            
+            // Calculate payment method breakdown
+            const paymentMethods = {};
+            sales.forEach(sale => {
+                if (!paymentMethods[sale.paymentMethod]) {
+                    paymentMethods[sale.paymentMethod] = 0;
+                }
+                paymentMethods[sale.paymentMethod] += sale.totalAmount;
+            });
+            
+            // Update stat cards
+            const statNumbers = document.querySelectorAll('.stats-summary .stat-number');
+            if (statNumbers.length >= 3) {
+                statNumbers[0].textContent = totalSales; // Total Sales
+                statNumbers[1].textContent = formatCurrency(totalRevenue); // Total Revenue
+                statNumbers[2].textContent = formatCurrency(avgSaleAmount); // Avg Sale Amount
+            }
+            
+            // Update payment method breakdown
+            const paymentItemsContainer = document.querySelector('.payment-breakdown');
+            if (paymentItemsContainer) {
+                paymentItemsContainer.innerHTML = '';
+                
+                Object.entries(paymentMethods).forEach(([method, amount]) => {
+                    const percentage = ((amount / totalRevenue) * 100).toFixed(0);
+                    const paymentItem = document.createElement('div');
+                    paymentItem.className = 'payment-item';
+                    paymentItem.innerHTML = `
+                        <span class="payment-method">${method}</span>
+                        <span class="payment-amount">${formatCurrency(amount)} (${percentage}%)</span>
+                    `;
+                    paymentItemsContainer.appendChild(paymentItem);
+                });
+            }
+        }
+
+        // Function to filter sales by event
+        function filterByEvent() {
+            const eventFilter = document.getElementById('eventFilter');
+            const selectedEventId = eventFilter.value;
+            
+            let sales = getAllSales();
+            if (selectedEventId) {
+                sales = sales.filter(sale => sale.eventID == selectedEventId);
+            }
+            
+            // Re-populate table with filtered data
+            const tbody = document.querySelector('.data-table tbody');
+            tbody.innerHTML = '';
+            
+            sales.forEach(sale => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>#${sale.saleID}</td>
+                    <td>${formatDate(sale.saleDate)}</td>
+                    <td>${sale.customerName}</td>
+                    <td>${sale.eventTitle}</td>
+                    <td>${formatCurrency(sale.totalAmount)}</td>
+                    <td><span class="payment-badge">${sale.paymentMethod}</span></td>
+                    <td>
+                        <button class="btn btn-small" onclick="viewSale(${sale.saleID})">View</button>
+                        <button class="btn btn-small" onclick="editSale(${sale.saleID})">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteSale(${sale.saleID})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateSalesStats(sales);
+        }
+
+        // Function to search sales
+        function searchSales() {
+            const searchTerm = document.getElementById('searchSales').value.toLowerCase();
+            const allSales = getAllSales();
+            
+            const filteredSales = allSales.filter(sale => 
+                sale.customerName.toLowerCase().includes(searchTerm) ||
+                sale.eventTitle.toLowerCase().includes(searchTerm) ||
+                sale.paymentMethod.toLowerCase().includes(searchTerm) ||
+                sale.saleID.toString().includes(searchTerm)
+            );
+            
+            // Re-populate table with filtered data
+            const tbody = document.querySelector('.data-table tbody');
+            tbody.innerHTML = '';
+            
+            filteredSales.forEach(sale => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>#${sale.saleID}</td>
+                    <td>${formatDate(sale.saleDate)}</td>
+                    <td>${sale.customerName}</td>
+                    <td>${sale.eventTitle}</td>
+                    <td>${formatCurrency(sale.totalAmount)}</td>
+                    <td><span class="payment-badge">${sale.paymentMethod}</span></td>
+                    <td>
+                        <button class="btn btn-small" onclick="viewSale(${sale.saleID})">View</button>
+                        <button class="btn btn-small" onclick="editSale(${sale.saleID})">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteSale(${sale.saleID})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            updateSalesStats(filteredSales);
+        }
+
+        // Function to populate event filter dropdown
+        function populateEventFilter() {
+            const events = getAllEvents();
+            const eventFilter = document.getElementById('eventFilter');
+            
+            if (eventFilter) {
+                // Clear existing options except "All Events"
+                const allEventsOption = eventFilter.firstElementChild;
+                eventFilter.innerHTML = '';
+                eventFilter.appendChild(allEventsOption);
+                
+                events.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.eventID;
+                    option.textContent = event.title;
+                    eventFilter.appendChild(option);
+                });
+            }
+        }
+
+        // Placeholder functions for button actions
+        function viewSale(saleId) {
+            window.location.href = `sale-details.html?saleId=${saleId}`;
+        }
+
+        function editSale(saleId) {
+            window.location.href = `edit-sale.html?saleId=${saleId}`;
+        }
+
+        function deleteSale(saleId) {
+            if (confirm(`Are you sure you want to delete sale ${saleId}? This will also remove all associated sold items.`)) {
+                alert(`Deleted sale ${saleId} and all associated items`);
+                populateSalesTable();
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            populateSalesTable();
+            populateEventFilter();
+            
+            // Add event listeners if elements exist
+            const eventFilter = document.getElementById('eventFilter');
+            const searchInput = document.getElementById('searchSales');
+            
+            if (eventFilter) {
+                eventFilter.addEventListener('change', filterByEvent);
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', searchSales);
+            }
+        });
+    </script>
+</body>
+</html>

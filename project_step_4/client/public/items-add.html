@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Item - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Add New Item</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="items.html">Items</a> > Add New
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form class="entity-form" id="addItemForm">
+                <div class="form-group">
+                    <label for="eventId">Estate Sale Event *</label>
+                    <select id="eventId" name="eventId" required>
+                        <option value="">Select an event...</option>
+                        <option value="1">Victorian Manor Estate Sale</option>
+                        <option value="2">Mid-Century Modern Collection</option>
+                        <option value="3">Collector's Paradise Sale</option>
+                        <option value="4">Garden Estate Sale</option>
+                        <option value="5">Art Lover's Estate</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Item Name *</label>
+                    <input type="text" id="name" name="name" required 
+                           placeholder="e.g., Antique Oak Dining Table">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category">
+                            <option value="">Select category...</option>
+                            <option value="Furniture">Furniture</option>
+                            <option value="China">China</option>
+                            <option value="Collectibles">Collectibles</option>
+                            <option value="Home Decor">Home Decor</option>
+                            <option value="Art">Art</option>
+                            <option value="Books">Books</option>
+                            <option value="Jewelry">Jewelry</option>
+                            <option value="Tools">Tools</option>
+                            <option value="Outdoor">Outdoor</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="startingPrice">Starting Price *</label>
+                        <input type="number" id="startingPrice" name="startingPrice" 
+                               step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="4" 
+                              placeholder="Detailed description of the item, condition, dimensions, etc."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status *</label>
+                    <select id="status" name="status" required>
+                        <option value="Available">Available</option>
+                        <option value="Held">Held</option>
+                        <option value="Sold">Sold</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Item</button>
+                    <button type="reset" class="btn btn-secondary">Clear Form</button>
+                    <a href="items.html" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-box">
+            <h3>Item Entry Guidelines</h3>
+            <ul>
+                <li>Provide clear, descriptive names for items</li>
+                <li>Include condition, age, and notable features in description</li>
+                <li>Starting price should reflect fair market value</li>
+                <li>Use "Held" status for items pending evaluation</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('addItemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Item creation functionality will be implemented in later steps.');
+        });
+    </script>
+</body>
+</html>

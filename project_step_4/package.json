@@ -1,0 +1,29 @@
+{
+  "name": "banana-phone-estate-services-step4",
+  "version": "1.0.0",
+  "description": "Estate Sale Management System for Banana Phone Estate Services - Step 4",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npm run start",
+    "production": "npx forever start server.js",
+    "stop_production": "npx forever stop server.js"
+  },
+  "keywords": [
+    "estate-sale",
+    "database",
+    "nodejs",
+    "mysql"
+  ],
+  "authors": [
+    "Cohen Velazquez",
+    "Joseph Lucciano Barberan"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "forever": "^4.0.3",
+    "mysql2": "^3.14.3"
+  }
+}

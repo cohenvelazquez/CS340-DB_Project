@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Item - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Item</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="items.html">Items</a> > Edit Item
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <div class="form-card">
+                <h2>Update Item Information</h2>
+                <form id="editItemForm">
+                    <div class="form-group">
+                        <label for="itemId">Item ID:</label>
+                        <input type="text" id="itemId" name="itemId" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="eventId">Event: *</label>
+                        <select id="eventId" name="eventId" required>
+                            <option value="">Select Event</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Item Name: *</label>
+                        <input type="text" id="name" name="name" required maxlength="100">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Category: *</label>
+                            <select id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Furniture">Furniture</option>
+                                <option value="Art">Art</option>
+                                <option value="Jewelry">Jewelry</option>
+                                <option value="Collectibles">Collectibles</option>
+                                <option value="Dishware">Dishware</option>
+                                <option value="Decor">Decor</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Books">Books</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Tools">Tools</option>
+                                <option value="Accessories">Accessories</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status: *</label>
+                            <select id="status" name="status" required>
+                                <option value="Available">Available</option>
+                                <option value="Hold">Hold</option>
+                                <option value="Sold">Sold</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" name="description" rows="4" maxlength="500" placeholder="Detailed description of the item..."></textarea>
+                        <small class="form-note">Maximum 500 characters</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startingPrice">Starting Price: *</label>
+                        <input type="number" id="startingPrice" name="startingPrice" step="0.01" min="0" required>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Update Item</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteItem()">Delete Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>Edit Item Notes</h3>
+            <ul>
+                <li>Items that are "Sold" cannot have their event changed</li>
+                <li>Price changes only affect future sales, not completed transactions</li>
+                <li>Status changes to "Sold" require an associated sale transaction</li>
+                <li>Description should include condition, provenance, and notable features</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Function to get URL parameters
+        function getURLParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                itemId: urlParams.get('itemId')
+            };
+        }
+
+        // Function to populate event dropdown
+        function populateEvents() {
+            const events = getAllEvents();
+            const eventSelect = document.getElementById('eventId');
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.eventID;
+                option.textContent = event.title;
+                eventSelect.appendChild(option);
+            });
+        }
+
+        // Function to load item data
+        function loadItemData() {
+            const params = getURLParams();
+            if (!params.itemId) {
+                alert('Missing item information. Redirecting...');
+                window.location.href = 'items.html';
+                return;
+            }
+
+            const items = getAllItems();
+            const item = items.find(i => i.itemID == params.itemId);
+
+            if (!item) {
+                alert('Item not found. Redirecting...');
+                window.location.href = 'items.html';
+                return;
+            }
+
+            // Populate form fields
+            document.getElementById('itemId').value = item.itemID;
+            document.getElementById('eventId').value = item.eventID;
+            document.getElementById('name').value = item.name;
+            document.getElementById('category').value = item.category;
+            document.getElementById('status').value = item.status;
+            document.getElementById('description').value = item.description;
+            document.getElementById('startingPrice').value = item.startingPrice;
+
+            // Disable event selection if item is sold
+            if (item.status === 'Sold') {
+                document.getElementById('eventId').disabled = true;
+                const note = document.createElement('small');
+                note.className = 'form-note';
+                note.textContent = 'Event cannot be changed for sold items';
+                document.getElementById('eventId').parentNode.appendChild(note);
+            }
+        }
+
+        // Function to handle form submission
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const itemData = {
+                itemId: formData.get('itemId'),
+                eventId: formData.get('eventId'),
+                name: formData.get('name'),
+                category: formData.get('category'),
+                status: formData.get('status'),
+                description: formData.get('description'),
+                startingPrice: parseFloat(formData.get('startingPrice'))
+            };
+            
+            // Validate required fields
+            if (!itemData.eventId || !itemData.name || !itemData.category || !itemData.status || !itemData.startingPrice) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            // Validate price
+            if (itemData.startingPrice < 0) {
+                alert('Starting price must be greater than or equal to 0');
+                return;
+            }
+
+            // Check if status change to "Sold" is valid
+            if (itemData.status === 'Sold') {
+                const soldItems = getAllSoldItems();
+                const hasSale = soldItems.some(si => si.itemID == itemData.itemId);
+                if (!hasSale) {
+                    alert('Items can only be marked as "Sold" if they have an associated sale transaction');
+                    return;
+                }
+            }
+
+            // Simulate database update
+            alert(`Successfully updated Item ${itemData.itemId}: ${itemData.name}`);
+            
+            // Redirect back to items page
+            window.location.href = 'items.html';
+        }
+
+        // Function to delete item
+        function deleteItem() {
+            const params = getURLParams();
+            const items = getAllItems();
+            const item = items.find(i => i.itemID == params.itemId);
+            
+            if (!item) {
+                alert('Item not found');
+                return;
+            }
+
+            // Check if item is sold
+            if (item.status === 'Sold') {
+                alert('Cannot delete sold items. Please remove from sales first.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`)) {
+                alert(`Deleted Item ${params.itemId}: ${item.name}`);
+                window.location.href = 'items.html';
+            }
+        }
+
+        // Function to cancel edit
+        function cancelEdit() {
+            if (confirm('Are you sure you want to cancel? Changes will be lost.')) {
+                window.location.href = 'items.html';
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            populateEvents();
+            loadItemData();
+            
+            // Add form submit listener
+            document.getElementById('editItemForm').addEventListener('submit', handleSubmit);
+            
+            // Character counter for description
+            const descriptionField = document.getElementById('description');
+            const maxLength = 500;
+            
+            descriptionField.addEventListener('input', function() {
+                const remaining = maxLength - this.value.length;
+                let note = this.parentNode.querySelector('.char-count');
+                
+                if (!note) {
+                    note = document.createElement('small');
+                    note.className = 'form-note char-count';
+                    this.parentNode.appendChild(note);
+                }
+                
+                note.textContent = `${remaining} characters remaining`;
+                note.style.color = remaining < 50 ? '#dc2626' : '#666';
+            });
+        });
+    </script>
+</body>
+</html>

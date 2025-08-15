@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<!--
+Banana Phone Estate Services - Items Management Page
+Authors: Cohen Velazquez and Joseph Lucciano Barberan
+Group: 80
+Date: August 7-14, 2025
+Course: CS 340 - Databases, Oregon State University
+
+Original frontend implementation with responsive design and dynamic data loading.
+Enhanced with assistance from AI generative tools (GitHub Copilot) for code optimization.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Items - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Items Management</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > Items
+            </nav>
+            <div class="header-actions">
+                <button id="resetBtn" class="reset-btn">RESET DATABASE</button>
+            </div>
+        </header>
+
+        <div class="action-bar">
+            <a href="items-add.html" class="btn btn-primary">+ Add New Item</a>
+            <div class="filter-controls">
+                <select id="eventFilter">
+                    <option value="">All Events</option>
+                </select>
+                <select id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Sold">Sold</option>
+                    <option value="Held">Held</option>
+                </select>
+                <input type="text" placeholder="Search items..." id="searchItems">
+                <button class="btn btn-secondary" onclick="searchItems()">Search</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table" id="itemsTable">
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Event</th>
+                        <th>Starting Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody">
+                    <!-- Data populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <span class="stat-number" id="totalItems">0</span>
+                <span class="stat-label">Total Items</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="availableItems">0</span>
+                <span class="stat-label">Available</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="soldItems">0</span>
+                <span class="stat-label">Sold</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalValue">$0.00</span>
+                <span class="stat-label">Total Value</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        let itemsData = [];
+        let eventsData = [];
+
+        // Function to reset the database
+        async function resetDatabase() {
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'RESETTING...';
+            
+            try {
+                await databaseAPI.reset();
+                await loadItems();
+                await loadEvents();
+            } catch (error) {
+                console.error('Reset error:', error);
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'RESET DATABASE';
+            }
+        }
+
+        // Load items data
+        async function loadItems() {
+            try {
+                itemsData = await itemsAPI.getAll();
+                renderItemsTable();
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading items:', error);
+                showMessage('Failed to load items: ' + error.message, 'error');
+            }
+        }
+
+        // Load events for dropdown
+        async function loadEvents() {
+            try {
+                eventsData = await eventsAPI.getForDropdown();
+                populateEventFilter();
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        // Populate event filter dropdown
+        function populateEventFilter() {
+            const eventFilter = document.getElementById('eventFilter');
+            eventFilter.innerHTML = '<option value="">All Events</option>';
+            
+            eventsData.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.eventID;
+                option.textContent = event.title;
+                eventFilter.appendChild(option);
+            });
+        }
+
+        // Render items table
+        function renderItemsTable() {
+            const tableBody = document.getElementById('itemsTableBody');
+            
+            const columns = [
+                { field: 'itemID' },
+                { field: 'name' },
+                { field: 'category' },
+                { field: 'eventTitle' },
+                { 
+                    field: 'startingPrice', 
+                    formatter: (value) => formatCurrency(value) 
+                },
+                { 
+                    field: 'status',
+                    formatter: (value) => `<span class="status ${value.toLowerCase()}">${value}</span>`
+                },
+                {
+                    field: 'actions',
+                    formatter: (value, row) => `
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" onclick="editItem(${row.itemID})">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteItem(${row.itemID}, '${row.name}')">
+                                Delete
+                            </button>
+                        </div>
+                    `
+                }
+            ];
+
+            populateTable('itemsTable', itemsData, columns);
+        }
+
+        // Edit item function
+        function editItem(itemId) {
+            window.location.href = `edit-item.html?id=${itemId}`;
+        }
+
+        // Delete item function
+        async function deleteItem(itemId, itemName) {
+            if (!confirm(`Are you sure you want to delete item "${itemName}"?`)) {
+                return;
+            }
+
+            try {
+                await itemsAPI.delete(itemId);
+                await loadItems();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+            }
+        }
+
+        // Search functionality
+        function searchItems() {
+            const searchTerm = document.getElementById('searchItems').value.toLowerCase();
+            const eventFilter = document.getElementById('eventFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filteredData = itemsData;
+
+            // Apply text search
+            if (searchTerm) {
+                filteredData = filteredData.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.category.toLowerCase().includes(searchTerm) ||
+                    item.description?.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Apply event filter
+            if (eventFilter) {
+                filteredData = filteredData.filter(item => item.eventID == eventFilter);
+            }
+
+            // Apply status filter
+            if (statusFilter) {
+                filteredData = filteredData.filter(item => item.status === statusFilter);
+            }
+
+            const tableBody = document.getElementById('itemsTableBody');
+            const columns = [
+                { field: 'itemID' },
+                { field: 'name' },
+                { field: 'category' },
+                { field: 'eventTitle' },
+                { 
+                    field: 'startingPrice', 
+                    formatter: (value) => formatCurrency(value) 
+                },
+                { 
+                    field: 'status',
+                    formatter: (value) => `<span class="status ${value.toLowerCase()}">${value}</span>`
+                },
+                {
+                    field: 'actions',
+                    formatter: (value, row) => `
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" onclick="editItem(${row.itemID})">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteItem(${row.itemID}, '${row.name}')">
+                                Delete
+                            </button>
+                        </div>
+                    `
+                }
+            ];
+
+            populateTable('itemsTable', filteredData, columns);
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalItems = itemsData.length;
+            const availableItems = itemsData.filter(item => item.status === 'Available').length;
+            const soldItems = itemsData.filter(item => item.status === 'Sold').length;
+            const totalValue = itemsData.reduce((sum, item) => sum + parseFloat(item.startingPrice), 0);
+
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('availableItems').textContent = availableItems;
+            document.getElementById('soldItems').textContent = soldItems;
+            document.getElementById('totalValue').textContent = formatCurrency(totalValue);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchItems');
+            const eventFilter = document.getElementById('eventFilter');
+            const statusFilter = document.getElementById('statusFilter');
+
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchItems();
+                    }
+                });
+            }
+
+            if (eventFilter) {
+                eventFilter.addEventListener('change', searchItems);
+            }
+
+            if (statusFilter) {
+                statusFilter.addEventListener('change', searchItems);
+            }
+
+            // Add reset button event listener
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', resetDatabase);
+            }
+
+            // Load data when page loads
+            loadItems();
+            loadEvents();
+        });
+    </script>
+</body>
+</html>

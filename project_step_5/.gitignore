@@ -1,0 +1,29 @@
+# Banana Phone Estate Services - Git Ignore Configuration
+# Authors: Cohen Velazquez and Joseph Lucciano Barberan
+# Group: 80
+# Date: August 7-14, 2025
+# Course: CS 340 - Databases, Oregon State University
+# Citation: Original configuration to exclude sensitive files and dependencies
+
+# Dependencies
+node_modules/
+
+# Database credentials (keep this private!)
+db-connector.js
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db

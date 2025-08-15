@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Banana Phone Estate Services - Customer Edit Form
+Authors: Cohen Velazquez and Joseph Lucciano Barberan
+Group: 80
+Date: August 7-14, 2025
+Course: CS 340 - Databases, Oregon State University
+
+Original frontend implementation with modern API integration and error handling.
+Enhanced with assistance from AI generative tools (GitHub Copilot) for code optimization.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Customer - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Customer</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="customers.html">Customers</a> > Edit Customer
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form id="editCustomerForm" class="data-form">
+                <div class="form-group">
+                    <label for="customerId">Customer ID:</label>
+                    <input type="number" id="customerId" name="customerId" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="firstName">First Name:</label>
+                    <input type="text" id="firstName" name="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name:</label>
+                    <input type="text" id="lastName" name="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone:</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Update Customer</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='customers.html'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        // Get customer ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const customerId = urlParams.get('id');
+
+        if (customerId) {
+            loadCustomer(customerId);
+        } else {
+            showMessage('No customer ID provided', 'error');
+            setTimeout(() => window.location.href = 'customers.html', 2000);
+        }
+
+        // Load customer data using the new API
+        async function loadCustomer(id) {
+            try {
+                const customer = await customersAPI.getById(id);
+                
+                // Populate form fields
+                document.getElementById('customerId').value = customer.customerID;
+                document.getElementById('firstName').value = customer.firstName;
+                document.getElementById('lastName').value = customer.lastName;
+                document.getElementById('email').value = customer.email;
+                document.getElementById('phone').value = customer.phone || '';
+            } catch (error) {
+                console.error('Error loading customer:', error);
+                showMessage('Customer not found', 'error');
+                setTimeout(() => window.location.href = 'customers.html', 2000);
+            }
+        }
+
+        // Handle form submission using the new API
+        document.getElementById('editCustomerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const customerData = {
+                firstName: document.getElementById('firstName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim()
+            };
+
+            // Basic validation
+            if (!customerData.firstName || !customerData.lastName || !customerData.email) {
+                showMessage('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(customerData.email)) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+
+            try {
+                await customersAPI.update(customerId, customerData);
+                
+                // Redirect after a short delay to let user see success message
+                setTimeout(() => {
+                    window.location.href = 'customers.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error updating customer:', error);
+                // Error message is handled by the API function
+            }
+        });
+
+        // Phone number formatting
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+            } else if (value.length >= 3) {
+                value = value.replace(/(\d{3})(\d{3})/, '$1-$2');
+            }
+            e.target.value = value.substring(0, 12); // Limit to 12 characters
+        });
+
+        // Real-time email validation
+        document.getElementById('email').addEventListener('blur', function(e) {
+            const email = e.target.value.trim();
+            if (email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    e.target.style.borderColor = '#dc3545';
+                    showMessage('Please enter a valid email address.', 'error');
+                } else {
+                    e.target.style.borderColor = '#28a745';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

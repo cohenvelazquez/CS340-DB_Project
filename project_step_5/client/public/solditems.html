@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<!--
+Banana Phone Estate Services - Sold Items Management Page
+Authors: Cohen Velazquez and Joseph Lucciano Barberan
+Group: 80
+Date: August 7-14, 2025
+Course: CS 340 - Databases, Oregon State University
+
+Original frontend implementation with responsive design and dynamic data loading.
+Enhanced with assistance from AI generative tools (GitHub Copilot) for code optimization.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sold Items - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sold Items Management</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="sales.html">Sales</a> > Sold Items
+            </nav>
+            <div class="header-actions">
+                <button id="resetBtn" class="reset-btn">RESET DATABASE</button>
+            </div>
+        </header>
+
+        <div class="action-bar">
+            <button class="btn btn-primary" onclick="addItemToSale()">+ Add Item to Sale</button>
+            <div class="filter-controls">
+                <select id="saleFilter">
+                    <option value="">All Sales</option>
+                </select>
+                <input type="text" placeholder="Search items..." id="searchSoldItems">
+                <button class="btn btn-secondary" onclick="searchSoldItems()">Search</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table" id="soldItemsTable">
+                <thead>
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Item Name</th>
+                        <th>Category</th>
+                        <th>Event</th>
+                        <th>Customer</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Sale Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="soldItemsTableBody">
+                    <!-- Data populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <span class="stat-number" id="totalSoldItems">0</span>
+                <span class="stat-label">Total Sold Items</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalSoldValue">$0.00</span>
+                <span class="stat-label">Total Sold Value</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="avgItemPrice">$0.00</span>
+                <span class="stat-label">Avg Item Price</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="uniqueCustomers">0</span>
+                <span class="stat-label">Unique Customers</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item to Sale Modal -->
+    <div id="addItemModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Item to Sale</h3>
+                <span class="close" onclick="closeAddItemModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addItemForm">
+                    <div class="form-group">
+                        <label for="saleSelect">Sale:</label>
+                        <select id="saleSelect" required>
+                            <option value="">Select a sale...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemSelect">Item:</label>
+                        <select id="itemSelect" required>
+                            <option value="">Select an item...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="unitPrice">Unit Price:</label>
+                        <input type="number" id="unitPrice" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" min="1" value="1" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddItemModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Item</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        let soldItemsData = [];
+        let salesData = [];
+        let availableItems = [];
+
+        // Function to reset the database
+        async function resetDatabase() {
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'RESETTING...';
+            
+            try {
+                await databaseAPI.reset();
+                await loadSoldItems();
+                await loadSalesForFilter();
+            } catch (error) {
+                console.error('Reset error:', error);
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'RESET DATABASE';
+            }
+        }
+
+        // Load sold items data
+        async function loadSoldItems() {
+            try {
+                soldItemsData = await soldItemsAPI.getAll();
+                renderSoldItemsTable();
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading sold items:', error);
+                showMessage('Failed to load sold items: ' + error.message, 'error');
+            }
+        }
+
+        // Load sales for filter dropdown
+        async function loadSalesForFilter() {
+            try {
+                salesData = await salesAPI.getAll();
+                populateSaleFilter();
+            } catch (error) {
+                console.error('Error loading sales:', error);
+            }
+        }
+
+        // Load available items for adding to sale
+        async function loadAvailableItems() {
+            try {
+                availableItems = await itemsAPI.getAvailable();
+            } catch (error) {
+                console.error('Error loading available items:', error);
+            }
+        }
+
+        // Populate sale filter dropdown
+        function populateSaleFilter() {
+            const saleFilter = document.getElementById('saleFilter');
+            saleFilter.innerHTML = '<option value="">All Sales</option>';
+            
+            salesData.forEach(sale => {
+                const option = document.createElement('option');
+                option.value = sale.saleID;
+                option.textContent = `Sale #${sale.saleID} - ${sale.customerName}`;
+                saleFilter.appendChild(option);
+            });
+        }
+
+        // Render sold items table
+        function renderSoldItemsTable() {
+            const tableBody = document.getElementById('soldItemsTableBody');
+            
+            const columns = [
+                { field: 'saleID' },
+                { field: 'itemName' },
+                { field: 'category' },
+                { field: 'eventTitle' },
+                { field: 'customerName' },
+                { 
+                    field: 'unitPrice', 
+                    formatter: (value) => formatCurrency(value) 
+                },
+                { field: 'quantity' },
+                { 
+                    field: 'total', 
+                    formatter: (value, row) => formatCurrency(row.unitPrice * row.quantity) 
+                },
+                { 
+                    field: 'saleDate', 
+                    formatter: (value) => formatDateForDisplay(value) 
+                },
+                {
+                    field: 'actions',
+                    formatter: (value, row) => `
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" onclick="editSoldItem(${row.saleID}, ${row.itemID})">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="removeSoldItem(${row.saleID}, ${row.itemID}, '${row.itemName}')">
+                                Remove
+                            </button>
+                        </div>
+                    `
+                }
+            ];
+
+            populateTable('soldItemsTable', soldItemsData, columns);
+        }
+
+        // Edit sold item function
+        async function editSoldItem(saleId, itemId) {
+            const unitPrice = prompt('Enter new unit price:');
+            const quantity = prompt('Enter new quantity:');
+            
+            if (unitPrice && quantity) {
+                try {
+                    await soldItemsAPI.update(saleId, itemId, {
+                        unitPrice: parseFloat(unitPrice),
+                        quantity: parseInt(quantity)
+                    });
+                    await loadSoldItems();
+                } catch (error) {
+                    console.error('Error updating sold item:', error);
+                }
+            }
+        }
+
+        // Remove sold item function
+        async function removeSoldItem(saleId, itemId, itemName) {
+            if (!confirm(`Are you sure you want to remove "${itemName}" from this sale? The item will be returned to Available status.`)) {
+                return;
+            }
+
+            try {
+                await soldItemsAPI.delete(saleId, itemId);
+                await loadSoldItems();
+            } catch (error) {
+                console.error('Error removing sold item:', error);
+            }
+        }
+
+        // Add item to sale modal functions
+        function addItemToSale() {
+            loadAvailableItems();
+            populateModalDropdowns();
+            document.getElementById('addItemModal').style.display = 'block';
+        }
+
+        function closeAddItemModal() {
+            document.getElementById('addItemModal').style.display = 'none';
+            document.getElementById('addItemForm').reset();
+        }
+
+        // Populate modal dropdowns
+        function populateModalDropdowns() {
+            // Populate sales dropdown
+            const saleSelect = document.getElementById('saleSelect');
+            saleSelect.innerHTML = '<option value="">Select a sale...</option>';
+            salesData.forEach(sale => {
+                const option = document.createElement('option');
+                option.value = sale.saleID;
+                option.textContent = `Sale #${sale.saleID} - ${sale.customerName}`;
+                saleSelect.appendChild(option);
+            });
+
+            // Populate items dropdown
+            const itemSelect = document.getElementById('itemSelect');
+            itemSelect.innerHTML = '<option value="">Select an item...</option>';
+            availableItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.itemID;
+                option.textContent = `${item.name} - ${formatCurrency(item.startingPrice)}`;
+                option.dataset.price = item.startingPrice;
+                itemSelect.appendChild(option);
+            });
+
+            // Set unit price when item is selected
+            itemSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.dataset.price) {
+                    document.getElementById('unitPrice').value = selectedOption.dataset.price;
+                }
+            });
+        }
+
+        // Handle add item form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const addItemForm = document.getElementById('addItemForm');
+            if (addItemForm) {
+                addItemForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const soldItemData = {
+                        saleID: document.getElementById('saleSelect').value,
+                        itemID: document.getElementById('itemSelect').value,
+                        unitPrice: parseFloat(document.getElementById('unitPrice').value),
+                        quantity: parseInt(document.getElementById('quantity').value)
+                    };
+
+                    try {
+                        await soldItemsAPI.create(soldItemData);
+                        closeAddItemModal();
+                        await loadSoldItems();
+                    } catch (error) {
+                        console.error('Error adding item to sale:', error);
+                    }
+                });
+            }
+        });
+
+        // Search functionality
+        function searchSoldItems() {
+            const searchTerm = document.getElementById('searchSoldItems').value.toLowerCase();
+            const saleFilter = document.getElementById('saleFilter').value;
+            
+            let filteredData = soldItemsData;
+
+            // Apply text search
+            if (searchTerm) {
+                filteredData = filteredData.filter(item => 
+                    item.itemName.toLowerCase().includes(searchTerm) ||
+                    item.category.toLowerCase().includes(searchTerm) ||
+                    item.customerName.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Apply sale filter
+            if (saleFilter) {
+                filteredData = filteredData.filter(item => item.saleID == saleFilter);
+            }
+
+            const tableBody = document.getElementById('soldItemsTableBody');
+            const columns = [
+                { field: 'saleID' },
+                { field: 'itemName' },
+                { field: 'category' },
+                { field: 'eventTitle' },
+                { field: 'customerName' },
+                { 
+                    field: 'unitPrice', 
+                    formatter: (value) => formatCurrency(value) 
+                },
+                { field: 'quantity' },
+                { 
+                    field: 'total', 
+                    formatter: (value, row) => formatCurrency(row.unitPrice * row.quantity) 
+                },
+                { 
+                    field: 'saleDate', 
+                    formatter: (value) => formatDateForDisplay(value) 
+                },
+                {
+                    field: 'actions',
+                    formatter: (value, row) => `
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" onclick="editSoldItem(${row.saleID}, ${row.itemID})">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="removeSoldItem(${row.saleID}, ${row.itemID}, '${row.itemName}')">
+                                Remove
+                            </button>
+                        </div>
+                    `
+                }
+            ];
+
+            populateTable('soldItemsTable', filteredData, columns);
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalSoldItems = soldItemsData.length;
+            const totalSoldValue = soldItemsData.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+            const avgItemPrice = totalSoldItems > 0 ? totalSoldValue / totalSoldItems : 0;
+            
+            // Calculate unique customers
+            const uniqueCustomers = new Set(soldItemsData.map(item => item.customerName)).size;
+
+            document.getElementById('totalSoldItems').textContent = totalSoldItems;
+            document.getElementById('totalSoldValue').textContent = formatCurrency(totalSoldValue);
+            document.getElementById('avgItemPrice').textContent = formatCurrency(avgItemPrice);
+            document.getElementById('uniqueCustomers').textContent = uniqueCustomers;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchSoldItems');
+            const saleFilter = document.getElementById('saleFilter');
+
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchSoldItems();
+                    }
+                });
+            }
+
+            if (saleFilter) {
+                saleFilter.addEventListener('change', searchSoldItems);
+            }
+
+            // Add reset button event listener
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', resetDatabase);
+            }
+
+            // Load data when page loads
+            loadSoldItems();
+            loadSalesForFilter();
+        });
+
+        // Check for sale ID in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const saleId = urlParams.get('saleId');
+        if (saleId) {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    const saleFilter = document.getElementById('saleFilter');
+                    if (saleFilter) {
+                        saleFilter.value = saleId;
+                        searchSoldItems();
+                    }
+                }, 1000);
+            });
+        }
+    </script>
+
+    <style>
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 0;
+            border: 1px solid #888;
+            width: 500px;
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</body>
+</html>

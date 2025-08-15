@@ -1,0 +1,35 @@
+{
+  "_comment": "Banana Phone Estate Services - Node.js Package Configuration",
+  "_authors": "Cohen Velazquez and Joseph Lucciano Barberan",
+  "_group": "80",
+  "_date": "August 7-14, 2025",
+  "_course": "CS 340 - Databases, Oregon State University",
+  "_citation": "Original package configuration for project dependencies and scripts",
+  "name": "banana-phone-estate-services-step4",
+  "version": "1.0.0",
+  "description": "Estate Sale Management System for Banana Phone Estate Services - Step 4",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npm run start",
+    "production": "npx forever start server.js",
+    "stop_production": "npx forever stop server.js"
+  },
+  "keywords": [
+    "estate-sale",
+    "database",
+    "nodejs",
+    "mysql"
+  ],
+  "authors": [
+    "Cohen Velazquez",
+    "Joseph Lucciano Barberan"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "forever": "^4.0.3",
+    "mysql2": "^3.14.3"
+  }
+}

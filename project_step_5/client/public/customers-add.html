@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+Banana Phone Estate Services - Add New Customer Form
+Authors: Cohen Velazquez and Joseph Lucciano Barberan
+Group: 80
+Date: August 7-14, 2025
+Course: CS 340 - Databases, Oregon State University
+
+Original frontend implementation with form validation and API integration.
+Enhanced with assistance from AI generative tools (GitHub Copilot) for code optimization.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Customer - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Add New Customer</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="customers.html">Customers</a> > Add New
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form class="entity-form" id="addCustomerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required 
+                               placeholder="John">
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required 
+                               placeholder="Smith">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="john.smith@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" 
+                           placeholder="503-555-0123" maxlength="15">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Customer</button>
+                    <button type="reset" class="btn btn-secondary">Clear Form</button>
+                    <a href="customers.html" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="info-box">
+            <h3>Customer Information Guidelines</h3>
+            <ul>
+                <li>Email address must be unique and valid</li>
+                <li>Phone number format: XXX-XXX-XXXX (US format)</li>
+                <li>All customer information is kept confidential</li>
+                <li>Customer accounts can be used across multiple events</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        // Handle form submission using the new API
+        document.getElementById('addCustomerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(this);
+            const customerData = {
+                firstName: formData.get('firstName').trim(),
+                lastName: formData.get('lastName').trim(),
+                email: formData.get('email').trim(),
+                phone: formData.get('phone').trim()
+            };
+
+            // Basic validation
+            if (!customerData.firstName || !customerData.lastName || !customerData.email) {
+                showMessage('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(customerData.email)) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+
+            try {
+                await customersAPI.create(customerData);
+                
+                // Clear form and redirect to customers page
+                this.reset();
+                
+                // Redirect after a short delay to let user see success message
+                setTimeout(() => {
+                    window.location.href = 'customers.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error creating customer:', error);
+                // Error message is handled by the API function
+            }
+        });
+
+        // Phone number formatting
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 6) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+            } else if (value.length >= 3) {
+                value = value.replace(/(\d{3})(\d{3})/, '$1-$2');
+            }
+            e.target.value = value.substring(0, 12); // Limit to 12 characters
+        });
+
+        // Real-time email validation
+        document.getElementById('email').addEventListener('blur', function(e) {
+            const email = e.target.value.trim();
+            if (email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    e.target.style.borderColor = '#dc3545';
+                    showMessage('Please enter a valid email address.', 'error');
+                } else {
+                    e.target.style.borderColor = '#28a745';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

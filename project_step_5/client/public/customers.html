@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<!--
+Banana Phone Estate Services - Customer Management Page
+Authors: Cohen Velazquez and Joseph Lucciano Barberan
+Group: 80
+Date: August 7-14, 2025
+Course: CS 340 - Databases, Oregon State University
+
+Original frontend implementation with responsive design and dynamic data loading.
+Enhanced with assistance from AI generative tools (GitHub Copilot) for code optimization.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Customer Management</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > Customers
+            </nav>
+            <div class="header-actions">
+                <button id="resetBtn" class="reset-btn">RESET DATABASE</button>
+            </div>
+        </header>
+
+        <div class="action-bar">
+            <a href="customers-add.html" class="btn btn-primary">+ Add New Customer</a>
+            <div class="search-box">
+                <input type="text" placeholder="Search customers..." id="searchCustomers">
+                <button class="btn btn-secondary" onclick="searchCustomers()">Search</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="data-table" id="customersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Customer Since</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    <!-- Data populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <span class="stat-number" id="totalCustomers">0</span>
+                <span class="stat-label">Total Customers</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="activeCustomers">0</span>
+                <span class="stat-label">Active Buyers</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="totalSpent">$0.00</span>
+                <span class="stat-label">Total Spent</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="avgPerCustomer">$0.00</span>
+                <span class="stat-label">Avg per Customer</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script>
+        let customersData = [];
+
+        // Function to reset the database using the new API
+        async function resetDatabase() {
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'RESETTING...';
+            
+            try {
+                await databaseAPI.reset();
+                // Reload customers data after successful reset
+                await loadCustomers();
+            } catch (error) {
+                console.error('Reset error:', error);
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'RESET DATABASE';
+            }
+        }
+
+        // Load customers data using the new API
+        async function loadCustomers() {
+            try {
+                console.log('Loading customers...');
+                console.log('customersAPI:', typeof customersAPI);
+                
+                if (typeof customersAPI === 'undefined') {
+                    throw new Error('customersAPI is not defined. Check if data.js loaded properly.');
+                }
+                
+                customersData = await customersAPI.getAll();
+                console.log('Customers loaded:', customersData.length);
+                
+                renderCustomersTable();
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                showMessage('Failed to load customers: ' + error.message, 'error');
+            }
+        }
+
+        // Render customers table with CRUD action buttons
+        function renderCustomersTable() {
+            console.log('Rendering customers table...', customersData);
+            const tableBody = document.getElementById('customersTableBody');
+            
+            if (!tableBody) {
+                console.error('Table body element not found!');
+                return;
+            }
+            
+            if (typeof populateTable === 'undefined') {
+                console.error('populateTable function is not defined!');
+                return;
+            }
+            
+            // Check if we have data
+            if (!customersData || customersData.length === 0) {
+                console.log('No customers data to display');
+                tableBody.innerHTML = '<tr><td colspan="6">No customers found</td></tr>';
+                return;
+            }
+            
+            const columns = [
+                { field: 'customerID' },
+                { 
+                    field: 'name', 
+                    formatter: (value, row) => `${row.firstName} ${row.lastName}` 
+                },
+                { field: 'email' },
+                { field: 'phone' },
+                { 
+                    field: 'created_at', 
+                    formatter: (value) => formatDateForDisplay(value) 
+                },
+                {
+                    field: 'actions',
+                    formatter: (value, row) => `
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" onclick="editCustomer(${row.customerID})">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${row.customerID}, '${row.firstName} ${row.lastName}')">
+                                Delete
+                            </button>
+                        </div>
+                    `
+                }
+            ];
+
+            console.log('Calling populateTable with data:', customersData.length, 'customers');
+            populateTable('customersTable', customersData, columns);
+            console.log('populateTable call completed');
+        }
+
+        // Edit customer function
+        function editCustomer(customerId) {
+            window.location.href = `edit-customer.html?id=${customerId}`;
+        }
+
+        // Delete customer function with confirmation
+        async function deleteCustomer(customerId, customerName) {
+            if (!confirm(`Are you sure you want to delete customer "${customerName}"? This will also delete all their associated sales.`)) {
+                return;
+            }
+
+            try {
+                await customersAPI.delete(customerId);
+                // Reload customers data after successful deletion
+                await loadCustomers();
+            } catch (error) {
+                console.error('Error deleting customer:', error);
+            }
+        }
+
+        // Search functionality
+        function searchCustomers() {
+            const searchTerm = document.getElementById('searchCustomers').value.toLowerCase();
+            
+            if (!searchTerm) {
+                renderCustomersTable();
+                return;
+            }
+
+            const filteredData = customersData.filter(customer => 
+                customer.firstName.toLowerCase().includes(searchTerm) ||
+                customer.lastName.toLowerCase().includes(searchTerm) ||
+                customer.email.toLowerCase().includes(searchTerm) ||
+                (customer.phone && customer.phone.includes(searchTerm))
+            );
+
+            const tableBody = document.getElementById('customersTableBody');
+            const columns = [
+                { field: 'customerID' },
+                { 
+                    field: 'name', 
+                    formatter: (value, row) => `${row.firstName} ${row.lastName}` 
+                },
+                { field: 'email' },
+                { field: 'phone' },
+                { 
+                    field: 'created_at', 
+                    formatter: (value) => formatDateForDisplay(value) 
+                },
+                {
+                    field: 'actions',
+                    formatter: (value, row) => `
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-outline" onclick="editCustomer(${row.customerID})">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${row.customerID}, '${row.firstName} ${row.lastName}')">
+                                Delete
+                            </button>
+                        </div>
+                    `
+                }
+            ];
+
+            populateTable('customersTable', filteredData, columns);
+        }
+
+        // Update statistics display
+        async function updateStatistics() {
+            try {
+                // Get sales data to calculate statistics
+                const salesData = await salesAPI.getAll();
+                
+                document.getElementById('totalCustomers').textContent = customersData.length;
+                
+                // Calculate active customers (those who have made purchases)
+                const customerSales = {};
+                let totalSpent = 0;
+                
+                salesData.forEach(sale => {
+                    if (!customerSales[sale.customerID]) {
+                        customerSales[sale.customerID] = 0;
+                    }
+                    customerSales[sale.customerID] += parseFloat(sale.totalAmount);
+                    totalSpent += parseFloat(sale.totalAmount);
+                });
+                
+                const activeCustomers = Object.keys(customerSales).length;
+                document.getElementById('activeCustomers').textContent = activeCustomers;
+                document.getElementById('totalSpent').textContent = formatCurrency(totalSpent);
+                
+                const avgPerCustomer = activeCustomers > 0 ? totalSpent / activeCustomers : 0;
+                document.getElementById('avgPerCustomer').textContent = formatCurrency(avgPerCustomer);
+                
+            } catch (error) {
+                console.error('Error updating statistics:', error);
+            }
+        }
+
+        // Add search on Enter key and load customers when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchCustomers');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchCustomers();
+                    }
+                });
+            }
+
+            // Add reset button event listener
+            const resetBtn = document.getElementById('resetBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', resetDatabase);
+            }
+
+            // Load customers when page loads
+            loadCustomers();
+        });
+        
+        // Debug function - can be called from browser console
+        window.testCustomersAPI = async function() {
+            try {
+                console.log('Testing customers API...');
+                const response = await fetch('/api/customers');
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                return data;
+            } catch (error) {
+                console.error('API test failed:', error);
+                return error;
+            }
+        };
+        
+        // Make customersData available for debugging
+        window.getCustomersData = () => customersData;
+    </script>
+</body>
+</html>

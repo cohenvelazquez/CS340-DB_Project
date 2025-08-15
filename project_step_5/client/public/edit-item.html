@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!--
+Banana Phone Estate Services - Item Edit Form
+Authors: Cohen Velazquez and Joseph Lucciano Barberan
+Group: 80
+Date: August 7-14, 2025
+Course: CS 340 - Databases, Oregon State University
+
+Original frontend implementation with modern API integration and error handling.
+Enhanced with assistance from AI generative tools (GitHub Copilot) for code optimization.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Item - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Item</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="items.html">Items</a> > Edit Item
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form id="editItemForm" class="data-form">
+                <div class="form-group">
+                    <label for="itemId">Item ID:</label>
+                    <input type="number" id="itemId" name="itemId" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventId">Event:</label>
+                    <select id="eventId" name="eventId" required>
+                        <option value="">Select Event</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Item Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category:</label>
+                    <select id="category" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Jewelry">Jewelry</option>
+                        <option value="Artwork">Artwork</option>
+                        <option value="Collectibles">Collectibles</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="startingPrice">Starting Price:</label>
+                    <input type="number" id="startingPrice" name="startingPrice" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Update Item</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='items.html'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Get item ID from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = urlParams.get('id');
+
+        if (itemId) {
+            loadItem(itemId);
+            loadEvents(); // Load events for dropdown
+        }
+
+        async function loadEvents() {
+            try {
+                const response = await fetch('/api/events');
+                const events = await response.json();
+                
+                const eventSelect = document.getElementById('eventId');
+                events.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.eventID;
+                    option.textContent = event.title;
+                    eventSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        async function loadItem(id) {
+            try {
+                const response = await fetch(`/api/items/${id}`);
+                if (!response.ok) {
+                    throw new Error('Item not found');
+                }
+                
+                const item = await response.json();
+                
+                // Populate form fields
+                document.getElementById('itemId').value = item.itemID;
+                document.getElementById('eventId').value = item.eventID;
+                document.getElementById('name').value = item.name;
+                document.getElementById('category').value = item.category;
+                document.getElementById('description').value = item.description || '';
+                document.getElementById('startingPrice').value = item.startingPrice;
+            } catch (error) {
+                alert('Error loading item: ' + error.message);
+                window.location.href = 'items.html';
+            }
+        }
+
+        document.getElementById('editItemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                category: document.getElementById('category').value,
+                startingPrice: parseFloat(document.getElementById('startingPrice').value),
+                eventID: parseInt(document.getElementById('eventId').value)
+            };
+
+            try {
+                const response = await fetch(`/api/items/${itemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Item updated successfully!');
+                    window.location.href = 'items.html';
+                } else {
+                    alert('Error updating item: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error updating item: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

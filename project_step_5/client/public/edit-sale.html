@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!--
+Banana Phone Estate Services - Sale Edit Form
+Authors: Cohen Velazquez and Joseph Lucciano Barberan
+Group: 80
+Date: August 7-14, 2025
+Course: CS 340 - Databases, Oregon State University
+
+Original frontend implementation with modern API integration and error handling.
+Enhanced with assistance from AI generative tools (GitHub Copilot) for code optimization.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Sale - Banana Phone Estate Services</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Edit Sale</h1>
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a> > <a href="sales.html">Sales</a> > Edit Sale
+            </nav>
+        </header>
+
+        <div class="form-container">
+            <form id="editSaleForm" class="data-form">
+                <div class="form-group">
+                    <label for="saleId">Sale ID:</label>
+                    <input type="number" id="saleId" name="saleId" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="customerId">Customer:</label>
+                    <select id="customerId" name="customerId" required>
+                        <option value="">Select Customer</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="saleDate">Sale Date:</label>
+                    <input type="date" id="saleDate" name="saleDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="totalAmount">Total Amount:</label>
+                    <input type="number" id="totalAmount" name="totalAmount" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method:</label>
+                    <select id="paymentMethod" name="paymentMethod" required>
+                        <option value="">Select Payment Method</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Credit Card">Credit Card</option>
+                        <option value="Check">Check</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Update Sale</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='sales.html'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Include data.js for consistent API handling -->
+    <script src="data.js"></script>
+    <script>
+        let saleId;
+
+        // Message display functions
+        function showMessage(message, type = 'info') {
+            // Remove any existing messages
+            const existingMessage = document.querySelector('.message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            // Create new message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(messageDiv, container.firstChild);
+
+            // Auto-remove success messages after 3 seconds
+            if (type === 'success') {
+                setTimeout(() => messageDiv.remove(), 3000);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            saleId = urlParams.get('saleId') || urlParams.get('id');
+            
+            if (!saleId) {
+                showMessage('No sale ID provided.', 'error');
+                setTimeout(() => window.location.href = 'sales.html', 2000);
+                return;
+            }
+
+            loadCustomers();
+            loadSale(saleId);
+        });
+
+        // Load customers for dropdown using modern API
+        async function loadCustomers() {
+            try {
+                const customers = await customersAPI.getAll();
+                
+                const customerSelect = document.getElementById('customerId');
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.customerID;
+                    option.textContent = `${customer.firstName} ${customer.lastName}`;
+                    customerSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                showMessage('Error loading customers.', 'error');
+            }
+        }
+
+        // Load sale data using modern API
+        async function loadSale(id) {
+            try {
+                const sale = await salesAPI.getById(id);
+                
+                // Populate form fields
+                document.getElementById('saleId').value = sale.saleID;
+                document.getElementById('customerId').value = sale.customerID;
+                document.getElementById('saleDate').value = sale.saleDate ? sale.saleDate.split('T')[0] : '';
+                document.getElementById('totalAmount').value = sale.totalAmount;
+                document.getElementById('paymentMethod').value = sale.paymentMethod;
+            } catch (error) {
+                console.error('Error loading sale:', error);
+                showMessage('Error loading sale. Redirecting...', 'error');
+                setTimeout(() => window.location.href = 'sales.html', 2000);
+            }
+        }
+
+        // Form submission with modern API
+        document.getElementById('editSaleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const saleData = {
+                customerID: parseInt(document.getElementById('customerId').value),
+                saleDate: document.getElementById('saleDate').value,
+                totalAmount: parseFloat(document.getElementById('totalAmount').value),
+                paymentMethod: document.getElementById('paymentMethod').value
+            };
+
+            // Basic validation
+            if (!saleData.customerID || !saleData.saleDate || !saleData.totalAmount || !saleData.paymentMethod) {
+                showMessage('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            if (saleData.totalAmount < 0) {
+                showMessage('Total amount cannot be negative.', 'error');
+                return;
+            }
+
+            try {
+                await salesAPI.update(saleId, saleData);
+                
+                showMessage('Sale updated successfully!', 'success');
+                
+                // Redirect after a short delay to let user see success message
+                setTimeout(() => {
+                    window.location.href = 'sales.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error updating sale:', error);
+                // Error message is handled by the API function
+            }
+        });
+    </script>
+</body>
+</html>

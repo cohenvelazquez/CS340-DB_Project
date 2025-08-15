@@ -64,20 +64,149 @@ app.get('/api/debug/tables', async (req, res) => {
 
 // RESET endpoint - calls the stored procedure to reset database
 app.post('/api/reset', async (req, res) => {
+    console.log('Attempting to reset database...');
+    const connection = await pool.getConnection();
+    
     try {
-        const query = 'CALL sp_reset_banana_phone_db()';
-        const [results] = await pool.execute(query);
+        // First try the comprehensive reset file
+        console.log('Attempting comprehensive reset...');
+        const fs = require('fs');
+        const path = require('path');
+        const resetPath = path.join(__dirname, 'reset_database.sql');
         
-        console.log('Database reset successful');
-        res.json({ 
-            success: true, 
-            message: 'Database has been reset successfully' 
-        });
+        if (fs.existsSync(resetPath)) {
+            console.log('Reading reset_database.sql file...');
+            const resetScript = fs.readFileSync(resetPath, 'utf8');
+            console.log('Executing comprehensive reset script...');
+            
+            // Split the script into individual statements and execute them
+            const statements = resetScript.split(';').filter(stmt => stmt.trim());
+            
+            for (const statement of statements) {
+                if (statement.trim()) {
+                    try {
+                        await connection.execute(statement.trim());
+                    } catch (stmtError) {
+                        console.warn('Statement execution:', stmtError.message);
+                        // Continue with other statements unless it's a critical error
+                        if (!stmtError.message.includes('Unknown table') && 
+                            !stmtError.message.includes("doesn't exist")) {
+                            throw stmtError;
+                        }
+                    }
+                }
+            }
+            console.log('Comprehensive reset completed successfully');
+            res.json({ success: true, message: 'Database reset successfully using comprehensive reset file' });
+            return;
+        }
+        
+        // Fallback: check if the stored procedure exists
+        console.log('Reset file not found, checking if stored procedure exists...');
+        const [procedures] = await connection.execute(
+            "SELECT ROUTINE_NAME FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = DATABASE() AND ROUTINE_NAME = 'sp_reset_banana_phone_db'"
+        );
+        
+        if (procedures.length > 0) {
+            console.log('Stored procedure found, attempting to call it...');
+            try {
+                await connection.execute('CALL sp_reset_banana_phone_db()');
+                console.log('Successfully called stored procedure');
+                res.json({ success: true, message: 'Database reset successfully using stored procedure' });
+                return;
+            } catch (procError) {
+                console.error('Stored procedure call failed:', procError);
+                throw procError;
+            }
+        } else {
+            throw new Error('No reset method available (reset_database.sql file or stored procedure not found)');
+        }
+        
     } catch (error) {
-        console.error('Database reset error:', error);
+        console.error('Database reset error details:', {
+            message: error.message,
+            code: error.code,
+            errno: error.errno,
+            sql: error.sql,
+            sqlState: error.sqlState,
+            sqlMessage: error.sqlMessage
+        });
         res.status(500).json({ 
             success: false, 
             message: 'Database reset failed',
+            error: error.message,
+            code: error.code || 'UNKNOWN_ERROR'
+        });
+    } finally {
+        connection.release();
+    }
+});
+
+// Alternative reset endpoint that manually executes DDL and DML
+app.post('/api/reset-manual', async (req, res) => {
+    try {
+        console.log('Starting manual database reset...');
+        
+        // Read DDL and DML files
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Read the DDL file
+        const ddlPath = path.join(__dirname, 'DDL.sql');
+        const ddlContent = fs.readFileSync(ddlPath, 'utf8');
+        
+        // Read the DML file  
+        const dmlPath = path.join(__dirname, 'DML.sql');
+        const dmlContent = fs.readFileSync(dmlPath, 'utf8');
+        
+        // Execute DDL first (this will drop and recreate tables)
+        console.log('Executing DDL...');
+        
+        // Split DDL into statements and execute them one by one
+        const ddlStatements = ddlContent
+            .split(';')
+            .map(stmt => stmt.trim())
+            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+            
+        for (const statement of ddlStatements) {
+            if (statement.trim()) {
+                try {
+                    await pool.execute(statement);
+                } catch (err) {
+                    console.log('Skipping statement (may be comment or delimiter):', statement.substring(0, 50));
+                }
+            }
+        }
+        
+        console.log('DDL executed successfully');
+        
+        // Execute DML (insert sample data)
+        console.log('Executing DML...');
+        const dmlStatements = dmlContent
+            .split(';')
+            .map(stmt => stmt.trim())
+            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+            
+        for (const statement of dmlStatements) {
+            if (statement.trim()) {
+                try {
+                    await pool.execute(statement);
+                } catch (err) {
+                    console.log('Skipping statement:', statement.substring(0, 50));
+                }
+            }
+        }
+        
+        console.log('Manual database reset completed successfully');
+        res.json({ 
+            success: true, 
+            message: 'Database has been reset successfully (manual method)' 
+        });
+    } catch (error) {
+        console.error('Manual reset error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Manual database reset failed',
             error: error.message 
         });
     }
@@ -99,7 +228,7 @@ app.get('/api/events', async (req, res) => {
 // READ operations - Get all customers
 app.get('/api/customers', async (req, res) => {
     try {
-        const query = 'SELECT customerID, firstName, lastName, email, phone, created_at FROM Customers ORDER BY lastName, firstName';
+        const query = 'SELECT customerID, firstName, lastName, email, phone FROM Customers ORDER BY lastName, firstName';
         const [results] = await pool.execute(query);
         console.log('Customers query results:', results.length, 'customers found');
         res.json(results);

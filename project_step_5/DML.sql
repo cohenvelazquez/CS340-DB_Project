@@ -2,7 +2,15 @@
 -- Data Manipulation Queries (DML)
 -- Authors: Cohen Velazquez and Joseph Lucciano Barberan
 -- Group: 80
--- Date: July 31, 2025
+-- Date: July 31, 2025, Updated: August 14, 2025
+-- Course: CS 340 - Databases, Oregon State University
+--
+-- Citation: This DML file contains original SQL queries designed by the authors
+-- for implementing CRUD operations in the estate sale management system.
+-- Query structure and parameterized approach adapted from CS 340 course examples.
+-- All business logic and specific query implementations are original work.
+-- Enhanced with assistance from AI generative tools (GitHub Copilot) for
+-- query optimization and SQL best practices.
 
 -- Variable notation: @variableName represents data that will be provided by backend code
 

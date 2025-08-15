@@ -224,6 +224,18 @@ app.get('/api/events', async (req, res) => {
     }
 });
 
+// Get all events for dropdown selections
+app.get('/api/events/dropdown', async (req, res) => {
+    try {
+        const query = 'SELECT eventID, title FROM EstateSaleEvents ORDER BY title';
+        const [results] = await pool.execute(query);
+        res.json(results);
+    } catch (error) {
+        console.error('Error fetching events for dropdown:', error);
+        res.status(500).json({ error: 'Failed to fetch events' });
+    }
+});
+
 // READ - Get single event by ID
 app.get('/api/events/:id', async (req, res) => {
     try {
@@ -379,6 +391,22 @@ app.get('/api/customers', async (req, res) => {
         res.json(results);
     } catch (error) {
         console.error('Error fetching customers:', error);
+        res.status(500).json({ error: 'Failed to fetch customers' });
+    }
+});
+
+// Get all customers for dropdown selections
+app.get('/api/customers/dropdown', async (req, res) => {
+    try {
+        const query = `
+            SELECT customerID, CONCAT(firstName, ' ', lastName) as fullName 
+            FROM Customers 
+            ORDER BY lastName, firstName
+        `;
+        const [results] = await pool.execute(query);
+        res.json(results);
+    } catch (error) {
+        console.error('Error fetching customers for dropdown:', error);
         res.status(500).json({ error: 'Failed to fetch customers' });
     }
 });
@@ -1294,34 +1322,6 @@ app.delete('/api/solditems/:saleId/:itemId', async (req, res) => {
 // ====================================================================
 // HELPER ENDPOINTS FOR FRONTEND DROPDOWNS
 // ====================================================================
-
-// Get all events for dropdown selections
-app.get('/api/events/dropdown', async (req, res) => {
-    try {
-        const query = 'SELECT eventID, title FROM EstateSaleEvents ORDER BY title';
-        const [results] = await pool.execute(query);
-        res.json(results);
-    } catch (error) {
-        console.error('Error fetching events for dropdown:', error);
-        res.status(500).json({ error: 'Failed to fetch events' });
-    }
-});
-
-// Get all customers for dropdown selections
-app.get('/api/customers/dropdown', async (req, res) => {
-    try {
-        const query = `
-            SELECT customerID, CONCAT(firstName, ' ', lastName) as fullName 
-            FROM Customers 
-            ORDER BY lastName, firstName
-        `;
-        const [results] = await pool.execute(query);
-        res.json(results);
-    } catch (error) {
-        console.error('Error fetching customers for dropdown:', error);
-        res.status(500).json({ error: 'Failed to fetch customers' });
-    }
-});
 
 // Get available items for sale (not already sold)
 app.get('/api/items/available', async (req, res) => {

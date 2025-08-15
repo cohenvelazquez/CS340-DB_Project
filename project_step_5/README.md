@@ -1,4 +1,4 @@
-# Project Step 4 - Banana Phone Estate Services Web Application
+# Project Step 5 - Banana Phone Estate Services Web Application
 
 ## Website URL
 **http://classwork.engr.oregonstate.edu:6144**
@@ -32,21 +32,11 @@ This is the Project Step 4 implementation of the Banana Phone Estate Services Es
 - **Sales Page**: Displays sales transactions with customer information
 - **Sold Items Page**: Shows the intersection table data with related information
 
-### One CUD Operation for Demo
-- **Delete Customer**: Implemented on the customers page to demonstrate database changes
-- Uses the `sp_delete_customer` stored procedure
-- Includes proper error handling and confirmation dialogs
-
 ### Dynamic Data Loading
 - All pages load data dynamically from the database via API endpoints
 - Real-time statistics on the homepage
 - Search and filter functionality on all management pages
 - Data refreshes automatically when returning from edit operations
-
-## What Doesn't Work (Not Required for Step 4)
-
-- **INSERT operations**: Forms exist but submit functionality not yet implemented
-- **Complex CRUD operations**: Will be implemented in future steps
 
 ## Project Structure
 
